@@ -32,6 +32,7 @@ class Department
 			->execute()
 			->current();
 
-		return $row === false ? null : $row;
+		// 該当なしのとき current() は null を返すため、真偽値で判定する
+		return $row ? $row : null;
 	}
 }

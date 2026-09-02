@@ -1,6 +1,6 @@
 <?php
 /**
- * ログイン・ログアウトを扱うコントローラ。
+ * S01 ログイン画面 / F01 ログイン・ログアウト
  * ログイン前でもアクセスできる必要があるため Controller_Base は継承しない。
  */
 class Controller_Auth extends \Controller
@@ -9,8 +9,25 @@ class Controller_Auth extends \Controller
 	{
 		parent::before();
 
-		// フォームのCSRFトークン埋め込み用に準備しておく
-		\Security::fetch_token();
+		// フォームのCSRFトークン準備と検証（詳細は App\Support\Csrf を参照）
+		\App\Support\Csrf::prepare();
+	}
+
+	/**
+	 * ログイン画面をブラウザにキャッシュさせない。
+	 * キャッシュされた古いフォームを再送すると、CSRF検証で弾かれてしまう。
+	 *
+	 * @param \Response|string $response
+	 * @return \Response
+	 */
+	public function after($response)
+	{
+		$response = parent::after($response);
+
+		$response->set_header('Cache-Control', 'no-store, no-cache, must-revalidate');
+		$response->set_header('Pragma', 'no-cache');
+
+		return $response;
 	}
 
 	/**
@@ -18,10 +35,9 @@ class Controller_Auth extends \Controller
 	 */
 	public function action_login()
 	{
-		// すでにログイン済みならトップへ
 		if (\Session::get(\Config::get('shift.session_key')) !== null)
 		{
-			return \Response::redirect('shift');
+			return \Response::redirect(static::home_for(\Session::get('role')));
 		}
 
 		$error = null;
@@ -39,12 +55,15 @@ class Controller_Auth extends \Controller
 			}
 			else
 			{
-				// セッション固定攻撃対策としてログイン成功時にセッションIDを再発行する
+				// セッション固定攻撃対策としてログイン成功時にセッションIDを再発行する。
+				// 権限が変わるタイミングなのでCSRFトークンもここで作り直す。
 				\Session::rotate();
+				\Security::set_token(true);
 
 				\Session::set(\Config::get('shift.session_key'), $employee['id']);
+				\Session::set('role', $employee['role']);
 
-				return \Response::redirect($employee['role'] === 'admin' ? 'admin' : 'shift');
+				return \Response::redirect(static::home_for($employee['role']));
 			}
 		}
 
@@ -67,5 +86,16 @@ class Controller_Auth extends \Controller
 		\Session::destroy();
 
 		return \Response::redirect('auth/login');
+	}
+
+	/**
+	 * 権限ごとの最初の画面
+	 *
+	 * @param string|null $role
+	 * @return string
+	 */
+	private static function home_for($role)
+	{
+		return $role === 'admin' ? 'request' : 'shift';
 	}
 }

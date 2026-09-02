@@ -1,66 +1,93 @@
 <?php
 /**
- * 従業員が自分自身のシフト希望を登録・編集・削除するコントローラ。
+ * S02 シフト希望入力画面（従業員）
+ * F02 登録 / F03 一覧表示 / F04 編集 / F05 削除 / F12 週切り替え
+ *
  * どの操作も「自分自身のシフト希望のみ」に制限し、確定済みは編集不可とする。
  */
 class Controller_Shift extends Controller_Base
 {
-	/**
-	 * シフト希望画面（knockout.jsでlist/create/update/deleteを呼び出す）
-	 */
 	public function action_index()
 	{
 		$view = \View::forge('shift/index');
-		$view->set('employee_name', $this->current_employee['name']);
-		$view->set('request_range_days', \Config::get('shift.request_range_days'));
+		$view->set('employee', $this->current_employee);
+		$view->set('employment_label', \Arr::get(\Config::get('shift.employment_type'), $this->current_employee['employment_type'], ''));
+		$view->set('time_options', static::time_options());
 
 		return \Response::forge($view);
 	}
 
 	/**
-	 * 自分のシフト希望一覧をJSONで返す
+	 * 指定週の自分のシフト希望を、7日分の枠に埋めて返す
 	 */
 	public function action_list()
 	{
-		$rows = \App\Model\ShiftRequest::find_by_employee($this->current_employee['id']);
+		$monday = \App\Support\Week::monday(\Input::get('week'));
+		$days   = \App\Support\Week::days($monday);
 
-		return $this->json(array('data' => $rows));
+		$requests = \App\Model\ShiftRequest::find_own_week(
+			$this->current_employee['id'],
+			$monday->format('Y-m-d'),
+			\App\Support\Week::sunday($monday)
+		);
+
+		// 日付をキーにして引けるようにする
+		$by_date = array();
+		foreach ($requests as $request)
+		{
+			$by_date[$request['work_date']] = $request;
+		}
+
+		$rows = array();
+		foreach ($days as $day)
+		{
+			$request = \Arr::get($by_date, $day['date']);
+
+			$rows[] = array(
+				'date'       => $day['date'],
+				'label'      => $day['label'],
+				'date_label' => date('m/d', strtotime($day['date'])),
+				'dow'        => $day['dow'],
+				'id'         => $request ? (int) $request['id'] : null,
+				'start_time' => $request ? substr($request['start_time'], 0, 5) : null,
+				'end_time'   => $request ? substr($request['end_time'], 0, 5) : null,
+				'status'     => $request ? $request['status'] : null,
+			);
+		}
+
+		return $this->json(array(
+			'week'      => $monday->format('Y-m-d'),
+			'label'     => \App\Support\Week::label($monday),
+			'prev_week' => (clone $monday)->modify('-7 days')->format('Y-m-d'),
+			'next_week' => (clone $monday)->modify('+7 days')->format('Y-m-d'),
+			'rows'      => $rows,
+		));
 	}
 
-	/**
-	 * シフト希望を新規登録する
-	 */
 	public function action_create()
 	{
-		if (\Input::method() !== 'POST')
-		{
-			throw new \HttpNoAccessException('Method not allowed');
-		}
+		$this->require_post();
 
 		list($data, $errors) = $this->validate_input();
 
 		if ( ! empty($errors))
 		{
-			return $this->json(array('errors' => $errors), 422);
+			return $this->json_errors($errors);
+		}
+
+		if (\App\Model\ShiftRequest::exists_on_date($this->current_employee['id'], $data['work_date']))
+		{
+			return $this->json_errors(array('この日のシフト希望はすでに登録されています。'));
 		}
 
 		$data['employee_id'] = $this->current_employee['id'];
-		$id = \App\Model\ShiftRequest::create($data);
 
-		return $this->json(array('id' => $id), 201);
+		return $this->json(array('id' => \App\Model\ShiftRequest::create($data)), 201);
 	}
 
-	/**
-	 * シフト希望を更新する（自分のもの、かつ未確定のみ）
-	 *
-	 * @param int $id
-	 */
 	public function action_update($id = null)
 	{
-		if (\Input::method() !== 'POST')
-		{
-			throw new \HttpNoAccessException('Method not allowed');
-		}
+		$this->require_post();
 
 		$shift = $this->find_own_editable_shift((int) $id);
 
@@ -73,7 +100,12 @@ class Controller_Shift extends Controller_Base
 
 		if ( ! empty($errors))
 		{
-			return $this->json(array('errors' => $errors), 422);
+			return $this->json_errors($errors);
+		}
+
+		if (\App\Model\ShiftRequest::exists_on_date($this->current_employee['id'], $data['work_date'], $shift['id']))
+		{
+			return $this->json_errors(array('この日のシフト希望はすでに登録されています。'));
 		}
 
 		\App\Model\ShiftRequest::update($shift['id'], $data);
@@ -81,17 +113,9 @@ class Controller_Shift extends Controller_Base
 		return $this->json(array('id' => $shift['id']));
 	}
 
-	/**
-	 * シフト希望を削除する（論理削除。自分のもの、かつ未確定のみ）
-	 *
-	 * @param int $id
-	 */
 	public function action_delete($id = null)
 	{
-		if (\Input::method() !== 'POST')
-		{
-			throw new \HttpNoAccessException('Method not allowed');
-		}
+		$this->require_post();
 
 		$shift = $this->find_own_editable_shift((int) $id);
 
@@ -106,7 +130,7 @@ class Controller_Shift extends Controller_Base
 	}
 
 	/**
-	 * 自分自身が所有し、かつ未確定（編集可能）なシフト希望を取得する。
+	 * 自分が所有し、かつ希望中（編集可能）なシフト希望を取得する。
 	 * ID指定だけで他人のデータを操作できないよう、必ず employee_id も照合する。
 	 *
 	 * @param int $id
@@ -131,7 +155,8 @@ class Controller_Shift extends Controller_Base
 			return null;
 		}
 
-		if ($shift['status'] === 'confirmed')
+		// 確定・却下済みは本人でも変更できない
+		if ($shift['status'] !== 'requested')
 		{
 			return null;
 		}
@@ -140,7 +165,7 @@ class Controller_Shift extends Controller_Base
 	}
 
 	/**
-	 * 入力値のバリデーション（サーバサイドで必ず検証する）
+	 * 入力値の検証（サーバサイドで必ず行う）
 	 *
 	 * @return array [array $data, array $errors]
 	 */
@@ -148,14 +173,13 @@ class Controller_Shift extends Controller_Base
 	{
 		$errors = array();
 
-		// このアプリはJSONボディでリクエストを送るため \Input::json() で読む
 		$work_date  = (string) \Input::json('work_date', '');
 		$start_time = (string) \Input::json('start_time', '');
 		$end_time   = (string) \Input::json('end_time', '');
-		$note       = trim((string) \Input::json('note', ''));
 
-		$today    = new \DateTime('today');
-		$max_date = (clone $today)->modify('+'.(int) \Config::get('shift.request_range_days').' days');
+		// 表示中の週をそのまま編集できるよう、今週の月曜を下限にする
+		$min_date = new \DateTime('monday this week');
+		$max_date = (clone $min_date)->modify('+'.(int) \Config::get('shift.request_range_days').' days');
 
 		$work_date_obj = \DateTime::createFromFormat('Y-m-d', $work_date);
 
@@ -163,9 +187,14 @@ class Controller_Shift extends Controller_Base
 		{
 			$errors[] = '勤務日の形式が正しくありません。';
 		}
-		elseif ($work_date_obj < $today or $work_date_obj > $max_date)
+		else
 		{
-			$errors[] = '勤務日は本日から'.(int) \Config::get('shift.request_range_days').'日以内で指定してください。';
+			$work_date_obj->setTime(0, 0, 0);
+
+			if ($work_date_obj < $min_date or $work_date_obj > $max_date)
+			{
+				$errors[] = '勤務日は今週から'.(int) \Config::get('shift.request_range_days').'日以内で指定してください。';
+			}
 		}
 
 		if ( ! preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start_time))
@@ -183,18 +212,32 @@ class Controller_Shift extends Controller_Base
 			$errors[] = '終了時刻は開始時刻より後にしてください。';
 		}
 
-		if (mb_strlen($note) > 255)
+		return array(
+			array('work_date' => $work_date, 'start_time' => $start_time, 'end_time' => $end_time),
+			$errors,
+		);
+	}
+
+	/**
+	 * 時刻セレクトの選択肢をconfigから組み立てる
+	 *
+	 * @return array
+	 */
+	private static function time_options()
+	{
+		$config = \Config::get('shift.time_options');
+
+		$current = \DateTime::createFromFormat('H:i', $config['start']);
+		$last    = \DateTime::createFromFormat('H:i', $config['end']);
+
+		$options = array();
+
+		while ($current <= $last)
 		{
-			$errors[] = '備考は255文字以内で入力してください。';
+			$options[] = $current->format('H:i');
+			$current->modify('+'.(int) $config['step'].' minutes');
 		}
 
-		$data = array(
-			'work_date'  => $work_date,
-			'start_time' => $start_time,
-			'end_time'   => $end_time,
-			'note'       => $note === '' ? null : $note,
-		);
-
-		return array($data, $errors);
+		return $options;
 	}
 }
