@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>シフト表作成アプリ｜UIイメージ</title>
+<style>
+  :root {
+    --text: #1f1f1e;
+    --muted: #6b6b66;
+    --faint: #9a9a94;
+    --border: #e2e0da;
+    --surface: #ffffff;
+    --tint: #f7f6f2;
+    --page: #efede7;
+    --warn-bg: #faeeda; --warn-fg: #854f0b;
+    --ok-bg: #e1f5ee;   --ok-fg: #0f6e56;
+    --ng-bg: #fcebeb;   --ng-fg: #a32d2d;
+    --blue-bg: #e6f1fb; --blue-fg: #0c447c;
+    --pur-bg: #eeedfe;  --pur-fg: #3c3489;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 20px 80px;
+    background: var(--page); color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 24px; font-weight: 600; margin: 0 0 4px; }
+  .lead { color: var(--muted); font-size: 14px; margin: 0 0 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  h2 { font-size: 17px; font-weight: 600; margin: 48px 0 4px; }
+  .note { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .screen { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--border); }
+  .bar-title { font-size: 14px; font-weight: 600; }
+  .bar-user { font-size: 12px; color: var(--muted); }
+  .toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--tint); flex-wrap: wrap; }
+  .toolbar.center { justify-content: center; }
+  .btn { font-size: 12px; padding: 5px 12px; border: 1px solid #cfcdc6; border-radius: 6px; background: var(--surface); color: var(--text); cursor: default; }
+  .sel { font-size: 12px; padding: 5px 10px; border: 1px solid #cfcdc6; border-radius: 6px; background: var(--surface); color: var(--text); }
+  .period { font-size: 13px; font-weight: 600; }
+  .push { margin-left: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+  th { text-align: left; font-weight: 600; color: var(--muted); background: var(--tint); padding: 8px 14px; font-size: 12px; }
+  td { padding: 9px 14px; border-top: 1px solid var(--border); }
+  td.sub { color: var(--muted); }
+  td.none { color: var(--faint); }
+  td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag { display: inline-block; font-size: 11.5px; padding: 2px 8px; border-radius: 5px; }
+  .warn { background: var(--warn-bg); color: var(--warn-fg); }
+  .ok   { background: var(--ok-bg);   color: var(--ok-fg); }
+  .ng   { background: var(--ng-bg);   color: var(--ng-fg); }
+  .blue { background: var(--blue-bg); color: var(--blue-fg); }
+  .pur  { background: var(--pur-bg);  color: var(--pur-fg); }
+  .icons { color: var(--muted); font-size: 13px; letter-spacing: 3px; }
+  .matrix th, .matrix td { text-align: center; padding: 6px 3px; font-size: 11.5px; }
+  .matrix th:first-child, .matrix td:first-child { text-align: left; padding-left: 14px; font-size: 12.5px; }
+  .matrix .cell { display: block; padding: 4px 2px; border-radius: 4px; }
+  .foot { display: flex; align-items: center; gap: 16px; padding: 9px 16px; border-top: 1px solid var(--border); background: var(--tint); font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  .form { padding: 12px 16px; border-top: 1px solid var(--border); background: var(--tint); }
+  .form-label { font-size: 11.5px; color: var(--muted); margin-bottom: 7px; }
+  .form-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 16px; border-top: 1px solid var(--border); background: var(--tint); font-size: 12.5px; color: var(--muted); }
+  .pager .cur { color: var(--text); font-weight: 600; }
+  .points { font-size: 13px; color: var(--muted); margin: 14px 0 0; padding-left: 18px; }
+  .points li { margin-bottom: 3px; }
+  .simple { padding: 32px 16px; text-align: center; }
+  .field { display: block; width: 260px; margin: 0 auto 10px; padding: 8px 10px; border: 1px solid #cfcdc6; border-radius: 6px; background: var(--surface); font-size: 12.5px; color: var(--faint); text-align: left; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>シフト表作成アプリ｜UIイメージ</h1>
+  <p class="lead">要件定義書 5. UIイメージ の補足資料　／　作成日：2026年8月22日</p>
+
+  <h2>S02　シフト希望入力画面（従業員）</h2>
+  <p class="note">従業員が自分のシフト希望を週単位で登録・編集・削除する画面。</p>
+  <div class="screen">
+    <div class="bar">
+      <span class="bar-title">シフト希望入力</span>
+      <span class="bar-user">山田 太郎（アルバイト）　ログアウト</span>
+    </div>
+    <div class="toolbar center">
+      <span class="btn">前週</span>
+      <span class="period">2026/09/07 〜 09/13</span>
+      <span class="btn">次週</span>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:26%">日付</th><th style="width:20%">開始</th><th style="width:20%">終了</th><th style="width:18%">状態</th><th style="width:16%">操作</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>09/07（月）</td><td class="sub">09:00</td><td class="sub">13:00</td><td><span class="tag warn">希望中</span></td><td class="icons">✎ 🗑</td></tr>
+        <tr><td>09/08（火）</td><td class="sub">17:00</td><td class="sub">22:00</td><td><span class="tag ok">確定</span></td><td class="none">🔒</td></tr>
+        <tr><td>09/09（水）</td><td class="none">—</td><td class="none">—</td><td class="none">未提出</td><td class="icons">＋</td></tr>
+        <tr><td>09/10（木）</td><td class="sub">09:00</td><td class="sub">13:00</td><td><span class="tag warn">希望中</span></td><td class="icons">✎ 🗑</td></tr>
+      </tbody>
+    </table>
+    <div class="form">
+      <div class="form-label">新規登録</div>
+      <div class="form-row">
+        <span class="sel">09/09（水）　▾</span>
+        <span class="sel">09:00　▾</span>
+        <span style="font-size:12px;color:var(--faint)">〜</span>
+        <span class="sel">13:00　▾</span>
+        <span class="btn">登録</span>
+      </div>
+    </div>
+  </div>
+  <ul class="points">
+    <li>週の切り替えと登録は非同期処理で行い、画面遷移なしに一覧へ反映する（knockout.js）</li>
+    <li>確定済みの希望は編集・削除を不可とし、ロックアイコンを表示する</li>
+  </ul>
+
+  <h2>S04　シフト表確定画面（管理者）</h2>
+  <p class="note">提出された希望をもとに、管理者がシフトの割り当てを確定する画面。</p>
+  <div class="screen">
+    <div class="bar">
+      <span class="bar-title">シフト表確定</span>
+      <span class="bar-user">管理者　ログアウト</span>
+    </div>
+    <div class="toolbar">
+      <span class="btn">前週</span>
+      <span class="period">09/07 〜 09/13</span>
+      <span class="btn">次週</span>
+      <span class="sel push">全部署　▾</span>
+    </div>
+    <table class="matrix">
+      <thead><tr>
+        <th style="width:24%">従業員</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th><th>日</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>山田 太郎</td>
+          <td><span class="cell warn">9-13</span></td>
+          <td><span class="cell ok">17-22</span></td>
+          <td class="none">—</td>
+          <td><span class="cell warn">9-13</span></td>
+          <td class="none">—</td>
+          <td><span class="cell ok">9-18</span></td>
+          <td class="none">—</td>
+        </tr>
+        <tr>
+          <td>佐藤 花子</td>
+          <td class="none">—</td>
+          <td><span class="cell warn">10-15</span></td>
+          <td><span class="cell ok">10-15</span></td>
+          <td class="none">—</td>
+          <td><span class="cell warn">17-22</span></td>
+          <td class="none">—</td>
+          <td><span class="cell ok">9-18</span></td>
+        </tr>
+        <tr>
+          <td>鈴木 一郎</td>
+          <td><span class="cell ok">13-18</span></td>
+          <td class="none">—</td>
+          <td><span class="cell warn">13-18</span></td>
+          <td><span class="cell ng">却下</span></td>
+          <td class="none">—</td>
+          <td class="none">—</td>
+          <td><span class="cell warn">9-14</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="foot">
+      <span><span class="swatch" style="background:var(--warn-bg)"></span>希望中</span>
+      <span><span class="swatch" style="background:var(--ok-bg)"></span>確定</span>
+      <span><span class="swatch" style="background:var(--ng-bg)"></span>却下</span>
+      <span class="push">セルをクリックで状態切替</span>
+    </div>
+  </div>
+  <ul class="points">
+    <li>セルクリックで「希望中 → 確定 → 却下」を切り替え、非同期処理で即時反映する</li>
+    <li>色分けの凡例を置き、色以外でも状態を判別できるようにする</li>
+  </ul>
+
+  <h2>S05　従業員管理画面（管理者）</h2>
+  <p class="note">管理者が従業員情報を登録・編集・削除する画面。</p>
+  <div class="screen">
+    <div class="bar">
+      <span class="bar-title">従業員管理</span>
+      <span class="bar-user">管理者　ログアウト</span>
+    </div>
+    <div class="toolbar">
+      <span class="sel">全部署　▾</span>
+      <span class="sel">全雇用形態　▾</span>
+      <span class="btn push">＋ 新規登録</span>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:22%">氏名</th><th style="width:30%">メールアドレス</th><th style="width:16%">部署</th><th style="width:18%">雇用形態</th><th style="width:14%">操作</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>山田 太郎</td><td class="sub ellip">yamada@example.com</td><td class="sub">ホール</td><td><span class="tag blue">アルバイト</span></td><td class="icons">✎ 🗑</td></tr>
+        <tr><td>佐藤 花子</td><td class="sub ellip">sato@example.com</td><td class="sub">キッチン</td><td><span class="tag pur">パート</span></td><td class="icons">✎ 🗑</td></tr>
+        <tr><td>鈴木 一郎</td><td class="sub ellip">suzuki@example.com</td><td class="sub">ホール</td><td><span class="tag blue">アルバイト</span></td><td class="icons">✎ 🗑</td></tr>
+      </tbody>
+    </table>
+    <div class="pager">
+      <span>前へ</span><span class="cur">1</span><span>2</span><span>3</span><span>次へ</span>
+    </div>
+  </div>
+  <ul class="points">
+    <li>1ページあたりの表示件数は独自configファイル（<code>fuel/app/config/shift.php</code>）で管理する</li>
+  </ul>
+
+  <h2>S01　ログイン画面</h2>
+  <p class="note">従業員・管理者共通のログイン画面。</p>
+  <div class="screen">
+    <div class="simple">
+      <div style="font-size:14px;font-weight:600;margin-bottom:18px;">シフト表作成アプリ</div>
+      <span class="field">メールアドレス</span>
+      <span class="field">パスワード</span>
+      <span class="btn" style="padding:7px 28px;">ログイン</span>
+    </div>
+  </div>
+  <ul class="points">
+    <li>ログイン成功時にセッションIDを再発行し、セッション固定攻撃を防ぐ</li>
+  </ul>
+
+</div>
+</body>
+</html>
