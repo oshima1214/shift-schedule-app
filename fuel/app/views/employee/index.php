@@ -133,8 +133,8 @@
 				<div>
 					<label class="field-label">パスワード <span class="req" data-bind="visible: !editingId()">*</span></label>
 					<input class="inp" type="password" autocomplete="new-password" data-bind="value: form.password">
-					<div class="hint" data-bind="visible: editingId">変更する場合のみ入力（8文字以上）</div>
-					<div class="hint" data-bind="visible: !editingId()">8文字以上</div>
+					<div class="hint" data-bind="visible: editingId">変更する場合のみ入力（<?php echo (int) $password_min_length; ?>文字以上）。再設定するとログインのロックも解除されます。</div>
+					<div class="hint" data-bind="visible: !editingId()"><?php echo (int) $password_min_length; ?>文字以上</div>
 				</div>
 			</div>
 		</div>

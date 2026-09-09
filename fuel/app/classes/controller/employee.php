@@ -19,6 +19,7 @@ class Controller_Employee extends Controller_Base
 		$view->set('departments', \App\Model\Department::find_all());
 		$view->set('employment_types', \Config::get('shift.employment_type'));
 		$view->set('roles', \Config::get('shift.role'));
+		$view->set('password_min_length', (int) \Config::get('shift.password.min_length'));
 
 		return \Response::forge($view);
 	}
@@ -192,9 +193,12 @@ class Controller_Employee extends Controller_Base
 			$errors[] = '権限を選択してください。';
 		}
 
-		if ($password !== '' and mb_strlen($password) < 8)
+		$min_length = (int) \Config::get('shift.password.min_length');
+		$max_length = (int) \Config::get('shift.password.max_length');
+
+		if ($password !== '' and (mb_strlen($password) < $min_length or mb_strlen($password) > $max_length))
 		{
-			$errors[] = 'パスワードは8文字以上で入力してください。';
+			$errors[] = 'パスワードは'.$min_length.'〜'.$max_length.'文字で入力してください。';
 		}
 
 		return array(

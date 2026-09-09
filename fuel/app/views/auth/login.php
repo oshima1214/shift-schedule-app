@@ -26,6 +26,11 @@
 		<?php echo Form::close(); ?>
 
 		<p class="login-hint">
+			ログインに<?php echo $max_attempts; ?>回続けて失敗すると、
+			そのアカウントを<?php echo $lockout_minutes; ?>分間ロックします。
+		</p>
+
+		<p class="login-hint">
 			デモ用アカウント<br>
 			管理者：admin@example.com ／ Admin#12345<br>
 			従業員：yamada@example.com ／ Staff#12345

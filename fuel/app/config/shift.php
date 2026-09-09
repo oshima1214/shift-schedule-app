@@ -39,4 +39,25 @@ return array(
 		'end'   => '23:00',
 		'step'  => 30,
 	),
+
+	// パスワードの文字数制限（登録・変更で共通）
+	'password' => array(
+		'min_length' => 8,
+		'max_length' => 100,
+	),
+
+	// 却下理由の最大文字数（shift_requests.reject_reason の桁数に合わせる）
+	'reject_reason_max_length' => 255,
+
+	// 一括操作で一度に処理できる最大件数。
+	// 画面に出ている1週間分（従業員数×7日）を十分に上回る値にしておく。
+	'bulk_max_count' => 500,
+
+	// ログイン試行回数の制限
+	'login' => array(
+		// 連続で何回失敗したらロックするか
+		'max_attempts' => 5,
+		// ロックする時間（分）
+		'lockout_minutes' => 15,
+	),
 );
