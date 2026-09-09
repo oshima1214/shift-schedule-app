@@ -15,6 +15,7 @@
   --ng-bg: #fcebeb;   --ng-fg: #a32d2d;
   --blue-bg: #e6f1fb; --blue-fg: #0c447c;
   --pur-bg: #eeedfe;  --pur-fg: #3c3489;
+  --sage-bg: #e9ede9; --sage-fg: #3f5b4a;
 }
 
 * { box-sizing: border-box; }
@@ -125,6 +126,7 @@ h1 { font-size: 19px; font-weight: 600; margin: 0 0 4px; }
 .ng   { background: var(--ng-bg);   color: var(--ng-fg); }
 .blue { background: var(--blue-bg); color: var(--blue-fg); }
 .pur  { background: var(--pur-bg);  color: var(--pur-fg); }
+.sage { background: var(--sage-bg); color: var(--sage-fg); }
 
 /* ---------- 表 ---------- */
 .tablescroll { overflow-x: auto; }

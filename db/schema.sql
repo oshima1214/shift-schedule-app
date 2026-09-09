@@ -22,7 +22,7 @@ CREATE TABLE `employees` (
   `password_hash`   varchar(255) NOT NULL,                        -- ハッシュ化したパスワード、平文では保存しない
   `failed_login_count` int NOT NULL DEFAULT 0,                    -- 連続したログイン失敗回数、成功またはロック時に0へ戻す
   `locked_until`    datetime DEFAULT NULL,                        -- ログインを受け付けない期限、nullならロックなし
-  `employment_type` char(10) NOT NULL DEFAULT 'part_time',        -- 雇用形態 part_time:アルバイト part:パート
+  `employment_type` char(10) NOT NULL DEFAULT 'part_time',        -- 雇用形態 full_time:正社員 part_time:アルバイト part:パート
   `role`            char(10) NOT NULL DEFAULT 'employee',         -- 権限 employee:従業員 admin:管理者
   `created_at`      timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`      timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

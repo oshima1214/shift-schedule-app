@@ -19,7 +19,7 @@
 <div class="wrap">
 	<h1>シフト表確定</h1>
 	<p class="lead">日付と従業員のマトリクスです。セルをクリックすると「希望中 → 確定 → 却下」の順に切り替わります。<br>
-		希望中の希望は、週ごと・日ごとにまとめて確定できます。</p>
+		希望中は週ごと・日ごとにまとめて確定でき、確定したあとでも取り消して希望中に戻せます。</p>
 
 	<div class="screen">
 		<div class="toolbar">
@@ -34,7 +34,13 @@
 				<?php endforeach; ?>
 			</select>
 
-			<button class="btn btn-primary push"
+			<!-- 確定したあとでもやり直せるよう、取り消しを確定の隣に置く -->
+			<button class="btn push"
+				data-bind="click: undoWeek,
+					disable: saving() || !weekApprovedIds().length,
+					text: '確定を取り消す（' + weekApprovedIds().length + '件）'"></button>
+
+			<button class="btn btn-primary"
 				data-bind="click: approveWeek,
 					disable: saving() || !weekRequestedIds().length,
 					text: '希望中をまとめて確定（' + weekRequestedIds().length + '件）'"></button>
@@ -97,6 +103,13 @@
 						<!-- ko foreach: summary -->
 						<td>
 							<span class="count" data-bind="text: approved + '人', css: { zero: is_zero }"></span>
+							<!-- 確定した日をその日だけ希望中に戻せるようにする -->
+							<!-- ko if: approved -->
+							<button class="minibtn"
+								data-bind="click: function (data, event) { $parent.undoDay($index()); },
+									disable: $parent.saving,
+									attr: { title: label + 'の確定を取り消して希望中に戻します' }">取消</button>
+							<!-- /ko -->
 						</td>
 						<!-- /ko -->
 					</tr>
@@ -126,7 +139,7 @@
 			<span><span class="swatch" style="background:var(--warn-bg)"></span>希望中</span>
 			<span><span class="swatch" style="background:var(--ok-bg)"></span>確定</span>
 			<span><span class="swatch" style="background:var(--ng-bg)"></span>却下</span>
-			<span class="push">セルをクリックで状態切替／却下には理由の入力が必要です</span>
+			<span class="push">セルをクリックで状態切替／確定は「取消」でいつでも希望中に戻せます</span>
 		</div>
 	</div>
 </div>
@@ -143,12 +156,12 @@
 
 			<p class="hint" style="margin:0 0 10px" data-bind="text: rejectTargetLabel"></p>
 
-			<label class="field-label" for="reject_reason">却下理由 <span class="req">*</span></label>
+			<label class="field-label" for="reject_reason">却下理由（任意）</label>
 			<textarea class="inp" id="reject_reason" rows="3" style="width:100%;resize:vertical"
 				maxlength="<?php echo (int) $reason_max_length; ?>"
 				data-bind="value: rejectReason, valueUpdate: 'input'"></textarea>
 			<div class="hint">
-				従業員のシフト希望入力画面にも表示されます。<?php echo (int) $reason_max_length; ?>文字以内。
+				入力すると、従業員のシフト希望入力画面にも表示されます。空のままでも却下できます。<?php echo (int) $reason_max_length; ?>文字以内。
 			</div>
 		</div>
 
@@ -195,26 +208,29 @@ function ViewModel() {
 		});
 	});
 
-	/** 表示中の週にある「希望中」のID */
-	self.weekRequestedIds = ko.computed(function () {
+	/** 表示中の週から、指定した状態のセルのIDを集める */
+	self.weekIdsOf = function (status) {
 		var ids = [];
 		self.rows().forEach(function (row) {
 			row.cells.forEach(function (cell) {
-				if (cell && cell.status === 'requested') { ids.push(cell.id); }
+				if (cell && cell.status === status) { ids.push(cell.id); }
 			});
 		});
 		return ids;
-	});
+	};
 
-	/** 指定した曜日（列）にある「希望中」のID */
-	self.dayRequestedIds = function (index) {
+	/** 指定した曜日（列）から、指定した状態のセルのIDを集める */
+	self.dayIdsOf = function (index, status) {
 		var ids = [];
 		self.rows().forEach(function (row) {
 			var cell = row.cells[index];
-			if (cell && cell.status === 'requested') { ids.push(cell.id); }
+			if (cell && cell.status === status) { ids.push(cell.id); }
 		});
 		return ids;
 	};
+
+	self.weekRequestedIds = ko.computed(function () { return self.weekIdsOf('requested'); });
+	self.weekApprovedIds = ko.computed(function () { return self.weekIdsOf('approved'); });
 
 	/** セルのツールチップ。却下済みは理由も見せる */
 	self.cellTitle = function (cell) {
@@ -311,7 +327,7 @@ function ViewModel() {
 
 	/** 指定した日の希望中をまとめて確定する */
 	self.approveDay = function (index) {
-		var ids = self.dayRequestedIds(index);
+		var ids = self.dayIdsOf(index, 'requested');
 		var day = self.summary()[index];
 		if (!ids.length) { return; }
 		if (!confirm(day.label + ' の希望中 ' + ids.length + ' 件をまとめて確定します。よろしいですか？')) { return; }
@@ -322,6 +338,30 @@ function ViewModel() {
 		self.errors([]);
 		self.applyStatus(ids, 'approved').catch(function (err) {
 			self.errors(api.messages(err, '一括確定に失敗しました。'));
+		});
+	};
+
+	/** 週全体の確定を取り消して希望中に戻す（確定したあとのやり直し） */
+	self.undoWeek = function () {
+		var ids = self.weekApprovedIds();
+		if (!ids.length) { return; }
+		if (!confirm('この週の確定 ' + ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
+		self.undo(ids);
+	};
+
+	/** 指定した日の確定を取り消して希望中に戻す */
+	self.undoDay = function (index) {
+		var ids = self.dayIdsOf(index, 'approved');
+		var day = self.summary()[index];
+		if (!ids.length) { return; }
+		if (!confirm(day.label + ' の確定 ' + ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
+		self.undo(ids);
+	};
+
+	self.undo = function (ids) {
+		self.errors([]);
+		self.applyStatus(ids, 'requested').catch(function (err) {
+			self.errors(api.messages(err, '確定の取り消しに失敗しました。'));
 		});
 	};
 
@@ -339,12 +379,8 @@ function ViewModel() {
 	};
 
 	self.submitReject = function () {
+		// 却下理由は任意。空のままでも却下できる。
 		var reason = self.rejectReason().trim();
-
-		if (reason === '') {
-			self.rejectErrors(['却下理由を入力してください。']);
-			return;
-		}
 
 		self.rejectErrors([]);
 		self.applyStatus(self.rejectIds, 'rejected', reason).then(function () {

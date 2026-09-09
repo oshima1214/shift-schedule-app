@@ -181,18 +181,20 @@ class Controller_Schedule extends Controller_Base
 		$reason     = null;
 		$max_length = (int) \Config::get('shift.reject_reason_max_length');
 
-		// 却下のときだけ理由を必須にする。ほかの状態では保存しない。
+		// 却下理由は任意。入力があったときだけ保存し、ほかの状態では保存しない。
 		if ($status === 'rejected')
 		{
 			$reason = trim((string) \Input::json('reject_reason', ''));
 
-			if ($reason === '')
-			{
-				$errors[] = '却下理由を入力してください。';
-			}
-			elseif (mb_strlen($reason) > $max_length)
+			if (mb_strlen($reason) > $max_length)
 			{
 				$errors[] = '却下理由は'.$max_length.'文字以内で入力してください。';
+			}
+
+			// 空文字ではなくnullで持たせ、「理由なし」を一通りに揃える
+			if ($reason === '')
+			{
+				$reason = null;
 			}
 		}
 

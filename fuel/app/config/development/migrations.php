@@ -11,6 +11,7 @@ return array(
         2 => '003_create_shift_requests',
         3 => '004_add_reject_reason_to_shift_requests',
         4 => '005_add_login_lock_to_employees',
+        5 => '006_set_admin_employment_type',
       ),
     ),
     'module' => 

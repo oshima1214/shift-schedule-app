@@ -63,7 +63,7 @@
 						<td class="sub ellip" data-bind="text: email, attr: { title: email }"></td>
 						<td class="sub" data-bind="text: department_name"></td>
 						<td>
-							<span class="tag" data-bind="css: employment_type === 'part_time' ? 'blue' : 'pur', text: employment_type_label"></span>
+							<span class="tag" data-bind="css: $parent.typeTag(employment_type), text: employment_type_label"></span>
 						</td>
 						<td class="sub" data-bind="text: role_label"></td>
 						<td>
@@ -147,8 +147,13 @@
 </div>
 
 <script>
+// 雇用形態ごとのバッジの色
+var TYPE_TAG = { full_time: 'sage', part_time: 'blue', part: 'pur' };
+
 function ViewModel() {
 	var self = this;
+
+	self.typeTag = function (type) { return TYPE_TAG[type] || 'blue'; };
 
 	self.rows = ko.observableArray([]);
 	self.page = ko.observable(1);

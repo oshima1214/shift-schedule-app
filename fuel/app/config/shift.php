@@ -21,8 +21,11 @@ return array(
 		'rejected'  => '却下',
 	),
 
-	// 雇用形態
+	// 雇用形態。
+	// シフトを出すのはアルバイト・パートだが、店長など管理者は社員のことが多いため
+	// full_time も選べるようにしている。
 	'employment_type' => array(
+		'full_time' => '正社員',
 		'part_time' => 'アルバイト',
 		'part'      => 'パート',
 	),
