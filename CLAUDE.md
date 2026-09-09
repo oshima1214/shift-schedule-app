@@ -4,10 +4,11 @@
 インターン課題として開発中。
 
 ## 技術スタック
-- PHP / FuelPHP
-- MySQL
+- PHP 7.3 / FuelPHP 1.8
+- MySQL 8.0
 - knockout.js（フロントエンド）
 - 非同期処理はfetchによるAjax
+- 開発環境はDocker（app: PHP+Apache / db: MySQL）。docker/配下に定義がある
 
 ## コーディング規約
 - DB操作は必ずDBクラス（クエリビルダ）を使う。生SQLの文字列連結は禁止
@@ -28,7 +29,8 @@ IPA「安全なウェブサイトの作り方」に沿って以下を実装す�
 
 ## データベース
 - departments（部署）1 - n employees（従業員）1 - n shift_requests（シフト希望）
-- 接続設定はfuel/app/config/db.phpにあり、gitignoreされている
+- 接続設定はfuel/app/config/development/db.phpにあり、gitignoreされている
+- アプリコンテナからの接続先はホスト名db、ポート3306
 - テーブル定義はdb/schema.sqlを参照
 
 ## Git運用

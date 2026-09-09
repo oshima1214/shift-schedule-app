@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -52,19 +52,9 @@ class Arr
 			return $return;
 		}
 
-		if (is_object($key))
-		{
-			$key = (string) $key;
-		}
+		is_object($key) and $key = (string) $key;
 
-		if (is_object($array))
-		{
-			if (property_exists($array, $key))
-			{
-				return $array->$key;
-			}
-		}
-		elseif (array_key_exists($key, $array))
+		if (array_key_exists($key, $array))
 		{
 			return $array[$key];
 		}
@@ -337,11 +327,10 @@ class Arr
 	/**
 	 * Checks if the given array is an assoc array.
 	 *
-	 * @param   array  $arr      the array to check
-	 * @param   bool   $sequential  if true, require an indexed array to have sequential keys
+	 * @param   array  $arr  the array to check
 	 * @return  bool   true if its an assoc array, false if not
 	 */
-	public static function is_assoc($arr, $sequential = true)
+	public static function is_assoc($arr)
 	{
 		if ( ! is_array($arr))
 		{
@@ -349,9 +338,9 @@ class Arr
 		}
 
 		$counter = 0;
-		foreach (array_keys($arr) as $key)
+		foreach ($arr as $key => $unused)
 		{
-			if ( ! is_int($key) or ($sequential and $key !== $counter++))
+			if ( ! is_int($key) or $key !== $counter++)
 			{
 				return true;
 			}
@@ -740,8 +729,6 @@ class Arr
 			return $array;
 		}
 
-		$b = array();
-
 		foreach ($array as $k => $v)
 		{
 			$b[$k] = static::get($v, $key);
@@ -762,8 +749,6 @@ class Arr
 			break;
 		}
 
-		$c = array();
-
 		foreach ($b as $key => $val)
 		{
 			$c[] = $array[$key];
@@ -778,19 +763,12 @@ class Arr
 	 * @param   array  $array        collection of arrays/objects to sort
 	 * @param   array  $conditions   sorting conditions
 	 * @param   bool   $ignore_case  whether to sort case insensitive
-	 * @param   bool   $reindex      for indexed arrays, reindex ( = default multisprt behaviour) or not
 	 * @return  array
 	 */
-	public static function multisort($array, $conditions, $ignore_case = false, $reindex = true)
+	public static function multisort($array, $conditions, $ignore_case = false)
 	{
 		$temp = array();
 		$keys = array_keys($conditions);
-
-		// only relevant for indexed arrays
-		if ($reindex)
-		{
-			$reindex = ! static::is_assoc($array, false);
-		}
 
 		foreach($keys as $key)
 		{
@@ -810,19 +788,7 @@ class Arr
 
 		$args[] = &$array;
 
-		if ( ! $reindex)
-		{
-			$keys = array_keys($array);
-			$args[] = &$keys;
-		}
-
 		call_fuel_func_array('array_multisort', $args);
-
-		if ( ! $reindex)
-		{
-			$array = array_combine($keys, $array);
-		}
-
 		return $array;
 	}
 

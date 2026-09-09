@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -21,9 +21,9 @@ namespace Oil;
  */
 class Refine
 {
-	public static function run($task = '', $args = array())
+	public static function run($task, $args = array())
 	{
-		$task = strtolower((string)$task);
+		$task = strtolower($task);
 
 		// Make sure something is set
 		if (empty($task) or $task === 'help')
@@ -180,7 +180,6 @@ HELP;
 	protected static function _discover_tasks()
 	{
 		$result = array();
-
 		$files = \Finder::instance()->list_files('tasks');
 
 		if (count($files) > 0)
@@ -204,39 +203,6 @@ HELP;
 					foreach ($methods as $method)
 					{
 						strpos($method->name, '_') !== 0 and $result[$task_name][] = $method->name;
-					}
-				}
-			}
-		}
-
-		$modules = \Module::loaded();
-
-		foreach ($modules as $module => $path)
-		{
-			$files = \Finder::forge($path)->list_files('tasks');
-
-			if (count($files) > 0)
-			{
-				foreach ($files as $file)
-				{
-					$task_name = strtolower($module).'::'.str_replace('.php', '', basename($file));
-					$class_name = '\\Fuel\\Tasks\\'.str_replace('.php', '', basename($file));
-
-					require $file;
-
-					$reflect = new \ReflectionClass($class_name);
-
-					// Ensure we only pull out the public methods
-					$methods = $reflect->getMethods(\ReflectionMethod::IS_PUBLIC);
-
-					$result[$task_name] = array();
-
-					if (count($methods) > 0)
-					{
-						foreach ($methods as $method)
-						{
-							strpos($method->name, '_') !== 0 and $result[$task_name][] = $method->name;
-						}
 					}
 				}
 			}

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -727,14 +727,12 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 * Implementation of the Iterator interface
 	 */
 
-	#[\ReturnTypeWillChange]
-	public function rewind()/*: void*/
+	public function rewind()
 	{
 		reset($this->_data);
 	}
 
-	#[\ReturnTypeWillChange]
-	public function current()/*: mixed*/
+	public function current()
 	{
 		if ($this->_sanitization_enabled)
 		{
@@ -743,14 +741,12 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 		return current($this->_data);
 	}
 
-	#[\ReturnTypeWillChange]
-	public function key()/*: mixed*/
+	public function key()
 	{
 		return key($this->_data);
 	}
 
-	#[\ReturnTypeWillChange]
-	public function next()/*: void*/
+	public function next()
 	{
 		if ($this->_sanitization_enabled)
 		{
@@ -759,8 +755,7 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 		return next($this->_data);
 	}
 
-	#[\ReturnTypeWillChange]
-	public function valid()/*: bool*/
+	public function valid()
 	{
 		return key($this->_data) !== null;
 	}
@@ -772,8 +767,7 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 * @param   string  $value   value
 	 * @return  void
 	 */
-	#[\ReturnTypeWillChange]
-	public function offsetSet(/*mixed */$offset, /*mixed */$value)/*: void*/
+	public function offsetSet($offset, $value)
 	{
 		$this->_data[$offset] = $value;
 	}
@@ -784,8 +778,7 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 * @param   string  $offset  class property
 	 * @return  bool
 	 */
-	#[\ReturnTypeWillChange]
-	public function offsetExists(/*mixed */$offset)/*: bool*/
+	public function offsetExists($offset)
 	{
 		return array_key_exists($offset, $this->_data);
 	}
@@ -796,9 +789,7 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 * @param   string  $offset  class property
 	 * @return  void
 	 */
-
-	#[\ReturnTypeWillChange]
-	public function offsetUnset(/*mixed */$offset)/*: void*/
+	public function offsetUnset($offset)
 	{
 		unset($this->_data[$offset]);
 	}
@@ -809,8 +800,7 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 * @param   string  $offset  class property
 	 * @return  mixed
 	 */
-	#[\ReturnTypeWillChange]
-	public function offsetGet(/*mixed */$offset)/*: mixed*/
+	public function offsetGet($offset)
 	{
 		if (array_key_exists($offset, $this->_data))
 		{
@@ -963,12 +953,6 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 *
 	 * @return  array  model data
 	 */
-	#[\ReturnTypeWillChange]
-	public function __serialize()/*: array*/
-	{
-		return $this->serialize();
-	}
-
 	public function serialize()
 	{
 		$data = $this->_data;
@@ -985,12 +969,6 @@ class Model_Crud extends \Model implements \Iterator, \ArrayAccess, \Serializabl
 	 * @param   string  $data
 	 * @return  array   model data
 	 */
-	#[\ReturnTypeWillChange]
-	public function __unserialize(/* array*/ $data)/*: void*/
-	{
-		$this->unserialize($data);
-	}
-
 	public function unserialize($data)
 	{
 		$data = unserialize($data);

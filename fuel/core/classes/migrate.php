@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -45,7 +45,6 @@ class Migrate
 	 * @var	array	migration table schema
 	 */
 	protected static $table_definition = array(
-		'id' => array('type' => 'int', 'auto_increment' => true),
 		'type' => array('type' => 'varchar', 'constraint' => 25),
 		'name' => array('type' => 'varchar', 'constraint' => 50),
 		'migration' => array('type' => 'varchar', 'constraint' => 100, 'null' => false, 'default' => ''),
@@ -278,41 +277,6 @@ class Migrate
 	}
 
 	/**
-	 * check if a given migration has run
-	 *
-	 * @param	string      $type		type of migration (package, module or app)
-	 * @param	string      $name		name of the package, module or app
-	 * @param   string|int	$seq		optional mingration number
-	 */
-	public static function has($type, $name, $seq = null)
-	{
-		// check for type first
-		if ( ! array_key_exists($type, static::$migrations))
-		{
-			return false;
-		}
-
-		// check for name next
-		if ( ! array_key_exists($name, static::$migrations[$type]))
-		{
-			return false;
-		}
-
-		// need to check a specific migration?
-		if ( ! is_null($seq))
-		{
-			is_numeric($seq) and $seq = (int) $seq;
-			if ( ! array_key_exists($seq, static::$migrations[$type][$name]))
-			{
-				return false;
-			}
-		}
-
-		// yup, has already run
-		return true;
-	}
-
-	/**
 	 * run the action migrations found
 	 *
 	 * @param	array	$migrations	list of files to migrate
@@ -324,12 +288,6 @@ class Migrate
 	 */
 	protected static function run($migrations, $name, $type, $method = 'up')
 	{
-		// set a flag if configured
-		if ($flag = \Config::get('migrations.flag'))
-		{
-			touch($flag);
-		}
-
 		// storage for installed migrations
 		$done = array();
 
@@ -369,12 +327,6 @@ class Migrate
 		static::$connection === null or \DBUtil::set_connection(null);
 
 		empty($done) or logger(\Fuel::L_INFO, 'Migrated to '.$ver.' successfully.');
-
-		// remove a flag if configured
-		if ($flag)
-		{
-			unlink($flag);
-		}
 
 		return $done;
 	}
@@ -529,20 +481,10 @@ class Migrate
 					throw new \FuelException(sprintf('Migration "%s" does not contain expected class "%s"', $migration['path'], $class));
 				}
 
-				foreach (array('up', 'down') as $method)
+				// and that it contains an "up" and "down" method
+				if ( ! is_callable(array($class, 'up')) or ! is_callable(array($class, 'down')))
 				{
-					if (method_exists($class, $method))
-					{
-						$reflection = new \ReflectionMethod($class, $method);
-						if ( ! $reflection->isPublic())
-						{
-							throw new \FuelException(sprintf('Migration class "%s" must include public method "%s"', $class, $method));
-						}
-					}
-					else
-					{
-						throw new \FuelException(sprintf('Migration class "%s" must include public method "%s"', $class, $method));
-					}
+					throw new \FuelException(sprintf('Migration class "%s" must include public methods "up" and "down"', $name));
 				}
 
 				$migrations[$ver]['class'] = $class;
@@ -699,10 +641,10 @@ class Migrate
 		if ( ! \DBUtil::table_exists(static::$table))
 		{
 			// create table
-			\DBUtil::create_table(static::$table, static::$table_definition, array('id'));
+			\DBUtil::create_table(static::$table, static::$table_definition);
 		}
 
-		// check if a table upgrade is needed (introduction migration field)
+		// check if a table upgrade is needed
 		elseif ( ! \DBUtil::field_exists(static::$table, array('migration')))
 		{
 			// get the current migration status
@@ -710,7 +652,7 @@ class Migrate
 
 			// drop the existing table, and recreate it in the new layout
 			\DBUtil::drop_table(static::$table);
-			\DBUtil::create_table(static::$table, static::$table_definition, array('id'));
+			\DBUtil::create_table(static::$table, static::$table_definition);
 
 			// check if we had a current migration status
 			if ( ! empty($current))
@@ -762,27 +704,6 @@ class Migrate
 
 			// delete any old migration config file that may exist
 			is_file(APPPATH.'config'.DS.'migrations.php') and unlink(APPPATH.'config'.DS.'migrations.php');
-		}
-
-		// check if a table upgrade is needed (introduction primary key)
-		elseif ( ! \DBUtil::field_exists(static::$table, array('id')))
-		{
-			// table for temporary storage
-			$tmptable = static::$table . '_'. \Str::random('alnum', 8);
-
-			// rename the migrations table
-			\DBUtil::rename_table(static::$table, $tmptable);
-
-			// create the new migrations table
-			\DBUtil::create_table(static::$table, static::$table_definition, array('id'));
-
-			// fill it using a select subquery
-			\DB::insert(static::$table, array('type', 'name', 'migration'))
-				->select(\DB::select('type', 'name', 'migration')->from($tmptable))
-				->execute();
-
-			// drop the temporary table
-			\DBUtil::drop_table($tmptable);
 		}
 
 		// set connection to default

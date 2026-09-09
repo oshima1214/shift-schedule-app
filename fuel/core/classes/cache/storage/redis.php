@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -287,13 +287,6 @@ class Cache_Storage_Redis extends \Cache_Storage_Driver
 
 		// fetch the cache data from the redis server
 		$payload = static::$redis->get($key);
-
-		// Prevent to pass null payload to unprep_contents, which would result to an error
-		if (is_null($payload))
-		{
-			return false;
-		}
-
 		try
 		{
 			$this->unprep_contents($payload);

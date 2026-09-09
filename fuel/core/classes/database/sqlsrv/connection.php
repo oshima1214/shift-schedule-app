@@ -3,11 +3,11 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @author     cocteau666@gmail.com
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -26,45 +26,13 @@ class Database_Sqlsrv_Connection extends \Database_PDO_Connection
 	 */
 	protected function __construct($name, array $config)
 	{
-		// MySQL schema processor
-		$this->_schema = new \Database_Sqlsrv_Schema($name, $this);
+		// this driver only works on Windows
+		if ( ! is_windows())
+		{
+			throw new \Database_Exception('The "SQLSRV" database driver works only on Windows. On *nix, use the "DBLib" driver instead.');
+		}
 
 		parent::__construct($name, $config);
-	}
-
-	/**
-	 * Create a new [Database_Query_Builder_Select]. Each argument will be
-	 * treated as a column. To generate a `foo AS bar` alias, use an array.
-	 *
-	 *     // SELECT id, username
-	 *     $query = $db->select('id', 'username');
-	 *
-	 *     // SELECT id AS user_id
-	 *     $query = $db->select(array('id', 'user_id'));
-	 *
-	 * @param   mixed   column name or array($column, $alias) or object
-	 * @param   ...
-	 * @return  Database_Query_Builder_Select
-	 */
-	public function select($args = null)
-	{
-		$instance = new \Database_Sqlsrv_Builder_Select($args);
-		return $instance->set_connection($this);
-	}
-
-	/**
-	 * Create a new [Database_Query_Builder_Delete].
-	 *
-	 *     // DELETE FROM users
-	 *     $query = $db->delete('users');
-	 *
-	 * @param   string  table to delete from
-	 * @return  Database_Query_Builder_Delete
-	 */
-	public function delete($table = null)
-	{
-		$instance = new \Database_Sqlsrv_Builder_Delete($table);
-		return $instance->set_connection($this);
 	}
 
 	/**
@@ -104,7 +72,7 @@ class Database_Sqlsrv_Connection extends \Database_PDO_Connection
 	 */
 	public function list_columns($table, $like = null)
 	{
-		$query = "SELECT * FROM information_schema.columns WHERE table_name = " . $this->quote($table);
+		$query = "SELECT * FROM Sys.Columns WHERE id = object_id('" . $this->quote_table($table) . "')";
 
 		if (is_string($like))
 		{
@@ -112,48 +80,61 @@ class Database_Sqlsrv_Connection extends \Database_PDO_Connection
 			$query .= " AND name LIKE ".$this->quote($like);
 		}
 
-		// Find all column names
-		$result = $this->query(\DB::SELECT, $query, false);
-
+		$count = 0;
 		$columns = array();
 		foreach ($result as $row)
 		{
-			// generic values
-			$column = $this->datatype($row['DATA_TYPE']);
-			$column['data_type']  = $row['DATA_TYPE'];
-			$column['name']  = $row['COLUMN_NAME'];
-			$column['default'] = $row['COLUMN_DEFAULT'];
-			$column['null'] = ($row['IS_NULLABLE'] == 'YES');
-			$column['ordinal_position'] = $row['ORDINAL_POSITION'];
-			$column['collation_name'] = $row['COLLATION_NAME'];
-
-			// type specific values
+			list($type, $length) = $this->_parse_type($row['Type']);
+			$column = $this->datatype($type);
+			$column['name']             = $row['Field'];
+			$column['default']          = $row['Default'];
+			$column['data_type']        = $type;
+			$column['null']             = ($row['Null'] == 'YES');
+			$column['ordinal_position'] = ++$count;
 			switch ($column['type'])
 			{
+				case 'float':
+					if (isset($length))
+					{
+						list($column['numeric_precision'], $column['numeric_scale']) = explode(',', $length);
+					}
+				break;
+				case 'int':
+					if (isset($length))
+					{
+						$column['display'] = $length;
+					}
+				break;
 				case 'string':
-					$length = (int) $row['CHARACTER_MAXIMUM_LENGTH'];
-					$length > 0 and $column['character_maximum_length'] = $length;
-					break;
+					switch ($column['data_type'])
+					{
+						case 'binary':
+						case 'varbinary':
+							$column['character_maximum_length'] = $length;
+						break;
+						case 'char':
+						case 'varchar':
+							$column['character_maximum_length'] = $length;
+						case 'text':
+						case 'tinytext':
+						case 'mediumtext':
+						case 'longtext':
+							$column['collation_name'] = $row['Collation'];
+						break;
+						case 'enum':
+						case 'set':
+							$column['collation_name'] = $row['Collation'];
+							$column['options'] = explode('\',\'', substr($length, 1, -1));
+						break;
+					}
+				break;
 			}
-
-			// deal with defaults syntax
-			if ($column['default'])
-			{
-				if (preg_match('~^\([\(\'](.*)[\'\)]\)$~', $column['default'], $matches))
-				{
-					$column['default'] = $matches[1];
-				}
-				else
-				{
-					// unsupported syntax, probably a server function
-					$column['default'] = null;
-				}
-			}
-
-			// store the result
-			$columns[$row['COLUMN_NAME']] = $column;
+			$column['comment']      = $row['Comment'];
+			$column['extra']        = $row['Extra'];
+			$column['key']          = $row['Key'];
+			$column['privileges']   = $row['Privileges'];
+			$columns[$row['Field']] = $column;
 		}
-
 		return $columns;
 	}
 
@@ -164,137 +145,26 @@ class Database_Sqlsrv_Connection extends \Database_PDO_Connection
 	 */
 	public function set_charset($charset)
 	{
-		if ($charset == 'utf8' or $charset == 'utf-8')
+		if ($charset == 'utf8' or $charset = 'utf-8')
 		{
 			// use utf8 encoding
-			if (PHP_VERSION_ID < 80500)
-			{
-				$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, \PDO::SQLSRV_ENCODING_UTF8);
-			}
-			else
-			{
-				$this->_connection->setAttribute(\PDO\Sqlsrv::ATTR_ENCODING, \PDO\Sqlsrv::ENCODING_UTF8);
-			}
+			$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, \PDO::SQLSRV_ENCODING_UTF8);
 		}
 		elseif ($charset == 'system')
 		{
 			// use system encoding
-			if (PHP_VERSION_ID < 80500)
-			{
-				$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, \PDO::SQLSRV_ENCODING_SYSTEM);
-			}
-			else
-			{
-				$this->_connection->setAttribute(\PDO\Sqlsrv::ATTR_ENCODING, \PDO\Sqlsrv::ENCODING_SYSTEM);
-			}
+			$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, \PDO::SQLSRV_ENCODING_SYSTEM);
 		}
 		elseif (is_numeric($charset))
 		{
 			// charset code passed directly
-			if (PHP_VERSION_ID < 80500)
-			{
-				$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, $charset);
-			}
-			else
-			{
-				$this->_connection->setAttribute(\PDO\Sqlsrv::ATTR_ENCODING, $charset);
-			}
+			$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, $charset);
 		}
 		else
 		{
 			// unknown charset, use the default encoding
-			if (PHP_VERSION_ID < 80500)
-			{
-				$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, \PDO::SQLSRV_ENCODING_DEFAULT);
-			}
-			else
-			{
-				$this->_connection->setAttribute(\PDO\Sqlsrv::ATTR_ENCODING, \PDO\Sqlsrv::ENCODING_DEFAULT);
-			}
+			$this->_connection->setAttribute(\PDO::SQLSRV_ATTR_ENCODING, \PDO::SQLSRV_ENCODING_DEFAULT);
 		}
-	}
-
-	/**
-	 * Quote a database identifier, such as a column name. Adds the
-	 * table prefix to the identifier if a table name is present.
-	 *
-	 *     $column = $db->quote_identifier($column);
-	 *
-	 * You can also use SQL methods within identifiers.
-	 *
-	 *     // The value of "column" will be quoted
-	 *     $column = $db->quote_identifier('COUNT("column")');
-	 *
-	 * Objects passed to this function will be converted to strings.
-	 * [Database_Expression] objects will use the value of the expression.
-	 * [Database_Query] objects will be compiled and converted to a sub-query.
-	 * All other objects will be converted using the `__toString` method.
-	 *
-	 * @param   mixed $value any identifier
-	 *
-	 * @return  string
-	 *
-	 * @uses    static::table_prefix
-	 */
-	public function quote_identifier($value)
-	{
-		if ($value === '*')
-		{
-			return $value;
-		}
-		elseif (is_object($value))
-		{
-			if ($value instanceof Database_Query)
-			{
-				// Create a sub-query
-				return '('.$value->compile($this).')';
-			}
-			elseif ($value instanceof Database_Expression)
-			{
-				// Use a raw expression
-				return $value->value();
-			}
-			else
-			{
-				// Convert the object to a string
-				return $this->quote_identifier((string) $value);
-			}
-		}
-		elseif (is_array($value))
-		{
-			// Separate the column and alias
-			list($value, $alias) = $value;
-
-			return $this->quote_identifier($value).' AS '.$this->quote_identifier($alias);
-		}
-
-		if (preg_match('/^(["\']).*\1$/m', $value))
-		{
-			return $value;
-		}
-
-		if (strpos($value, '.') !== false)
-		{
-			// Split the identifier into the individual parts
-			// This is slightly broken, because a table or column name
-			// (or user-defined alias!) might legitimately contain a period.
-			$parts = explode('.', $value);
-
-			if ($prefix = $this->table_prefix())
-			{
-				// Add the table prefix to the table name
-				$parts[0] = $prefix.$parts[0];
-			}
-
-			// Quote each of the parts, Transact-SQL style
-			return '[' . implode('].[', $parts) . ']';
-		}
-
-		// That you can simply escape the identifier by doubling
-		// it is a built-in assumption which may not be valid for
-		// all connection types!  However, it's true for MySQL,
-		// SQLite, Postgres and other ANSI SQL-compliant DBs.
-		return $this->_identifier.str_replace($this->_identifier, $this->_identifier.$this->_identifier, $value).$this->_identifier;
 	}
 
 }

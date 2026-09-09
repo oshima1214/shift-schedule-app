@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -101,9 +101,9 @@ abstract class Lang_File implements Lang_Interface
 	 */
 	protected function prep_vars(&$array)
 	{
-		static $replacements;
+		static $replacements = false;
 
-		if (!isset($replacements))
+		if ($replacements === false)
 		{
 			foreach ($this->vars as $i => $v)
 			{
@@ -193,17 +193,12 @@ abstract class Lang_File implements Lang_Interface
 		// make sure we have a fallback
 		$path or $path = APPPATH.'lang'.DS.$identifier;
 
-		// update the stored filename
-		$this->file = $path;
-
-		// make sure the directory for this file exists
 		$path = pathinfo($path);
 		if ( ! is_dir($path['dirname']))
 		{
 			mkdir($path['dirname'], 0777, true);
 		}
 
-		// write it
 		return \File::update($path['dirname'], $path['basename'], $output);
 	}
 

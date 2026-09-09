@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -280,17 +280,6 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 		return $this->_sanitization_enabled;
 	}
 
-	/**
-	 *  sanitizates the current row
-	 */
-	protected function _sanitizate()
-	{
-		if ( ($this->_row !== null) and $this->_sanitization_enabled)
-		{
-			$this->_row = \Security::clean($this->_row, null, 'security.output_filter');
-		}
-	}
-	
 	/**************************
 	 * Countable methods
 	 *************************/
@@ -302,8 +291,7 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 	 *
 	 * @return  integer
 	 */
-	#[\ReturnTypeWillChange]
-	public function count()/*: int*/
+	public function count()
 	{
 		return $this->_total_rows;
 	}
@@ -317,8 +305,7 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 	 *
 	 * @return  mixed
 	 */
-	#[\ReturnTypeWillChange]
-	public function current()/*: mixed*/
+	public function current()
 	{
 		return $this->_row;
 	}
@@ -328,8 +315,7 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 	 *
 	 * @return  integer
 	 */
-	#[\ReturnTypeWillChange]
-	public function key()/*: mixed*/
+	public function key()
 	{
 		return $this->_current_row;
 	}
@@ -337,8 +323,7 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 	/**
 	 * Implements [Iterator::next], moves to the next row.
 	 */
-	#[\ReturnTypeWillChange]
-	public function next()/*: void*/
+	public function next()
 	{
 		++$this->_current_row;
 	}
@@ -346,8 +331,7 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 	/**
 	 * Implements [Iterator::rewind], sets the current row to -1.
 	 */
-	#[\ReturnTypeWillChange]
-	public function rewind()/*: void*/
+	public function rewind()
 	{
 		// first row is zero, not one!
 		$this->_current_row = -1;
@@ -361,8 +345,7 @@ abstract class Database_Result implements \Countable, \Iterator, \Sanitization
 	 *
 	 * @return  boolean
 	 */
-	#[\ReturnTypeWillChange]
-	public function valid()/*: bool*/
+	public function valid()
 	{
 		return $this->_current_row >= 0 and $this->_current_row < $this->_total_rows;
 	}

@@ -4,41 +4,43 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "458a3046794b514741d3f0c163373026",
+    "content-hash": "c870d26b9cb96ac71b5d73708c7ef87f",
     "packages": [
         {
             "name": "composer/installers",
-            "version": "v2.3.0",
+            "version": "v1.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/installers.git",
-                "reference": "12fb2dfe5e16183de69e784a7b84046c43d97e8e"
+                "reference": "d20a64ed3c94748397ff5973488761b22f6d3f19"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/installers/zipball/12fb2dfe5e16183de69e784a7b84046c43d97e8e",
-                "reference": "12fb2dfe5e16183de69e784a7b84046c43d97e8e",
+                "url": "https://api.github.com/repos/composer/installers/zipball/d20a64ed3c94748397ff5973488761b22f6d3f19",
+                "reference": "d20a64ed3c94748397ff5973488761b22f6d3f19",
                 "shasum": ""
             },
             "require": {
-                "composer-plugin-api": "^1.0 || ^2.0",
-                "php": "^7.2 || ^8.0"
+                "composer-plugin-api": "^1.0 || ^2.0"
+            },
+            "replace": {
+                "roundcube/plugin-installer": "*",
+                "shama/baton": "*"
             },
             "require-dev": {
-                "composer/composer": "^1.10.27 || ^2.7",
-                "composer/semver": "^1.7.2 || ^3.4.0",
-                "phpstan/phpstan": "^1.11",
-                "phpstan/phpstan-phpunit": "^1",
-                "symfony/phpunit-bridge": "^7.1.1",
-                "symfony/process": "^5 || ^6 || ^7"
+                "composer/composer": "1.6.* || ^2.0",
+                "composer/semver": "^1 || ^3",
+                "phpstan/phpstan": "^0.12.55",
+                "phpstan/phpstan-phpunit": "^0.12.16",
+                "symfony/phpunit-bridge": "^4.2 || ^5",
+                "symfony/process": "^2.3"
             },
             "type": "composer-plugin",
             "extra": {
                 "class": "Composer\\Installers\\Plugin",
                 "branch-alias": {
-                    "dev-main": "2.x-dev"
-                },
-                "plugin-modifies-install-path": true
+                    "dev-main": "1.x-dev"
+                }
             },
             "autoload": {
                 "psr-4": {
@@ -59,6 +61,7 @@
             "description": "A multi-framework Composer library installer",
             "homepage": "https://composer.github.io/installers/",
             "keywords": [
+                "Craft",
                 "Dolibarr",
                 "Eliasis",
                 "Hurad",
@@ -79,6 +82,7 @@
                 "Whmcs",
                 "WolfCMS",
                 "agl",
+                "aimeos",
                 "annotatecms",
                 "attogram",
                 "bitrix",
@@ -87,7 +91,6 @@
                 "cockpit",
                 "codeigniter",
                 "concrete5",
-                "concreteCMS",
                 "croogo",
                 "dokuwiki",
                 "drupal",
@@ -98,6 +101,7 @@
                 "grav",
                 "installer",
                 "itop",
+                "joomla",
                 "known",
                 "kohana",
                 "laravel",
@@ -106,7 +110,6 @@
                 "magento",
                 "majima",
                 "mako",
-                "matomo",
                 "mediawiki",
                 "miaoxing",
                 "modulework",
@@ -126,7 +129,9 @@
                 "silverstripe",
                 "sydes",
                 "sylius",
+                "symfony",
                 "tastyigniter",
+                "typo3",
                 "wordpress",
                 "yawik",
                 "zend",
@@ -134,7 +139,7 @@
             ],
             "support": {
                 "issues": "https://github.com/composer/installers/issues",
-                "source": "https://github.com/composer/installers/tree/v2.3.0"
+                "source": "https://github.com/composer/installers/tree/v1.12.0"
             },
             "funding": [
                 {
@@ -150,26 +155,25 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-06-24T20:46:46+00:00"
+            "time": "2021-09-13T08:19:44+00:00"
         },
         {
             "name": "fuel/auth",
-            "version": "dev-1.9/develop",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fuel/auth.git",
-                "reference": "650d82833336595b61d6b664f0b6922aa698e0bc"
+                "reference": "908ab91344875ec17e58458c1e48f0ce482a337b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fuel/auth/zipball/650d82833336595b61d6b664f0b6922aa698e0bc",
-                "reference": "650d82833336595b61d6b664f0b6922aa698e0bc",
+                "url": "https://api.github.com/repos/fuel/auth/zipball/908ab91344875ec17e58458c1e48f0ce482a337b",
+                "reference": "908ab91344875ec17e58458c1e48f0ce482a337b",
                 "shasum": ""
             },
             "require": {
-                "composer/installers": "^2.3.0"
+                "composer/installers": "~1.0"
             },
-            "default-branch": true,
             "type": "fuel-package",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -185,32 +189,31 @@
             "homepage": "https://github.com/fuel/auth",
             "support": {
                 "issues": "https://github.com/fuel/auth/issues",
-                "source": "https://github.com/fuel/auth/tree/1.9/develop"
+                "source": "https://github.com/fuel/auth/tree/1.8.2"
             },
-            "time": "2026-08-23T18:50:50+00:00"
+            "time": "2019-06-27T14:59:18+00:00"
         },
         {
             "name": "fuel/core",
-            "version": "dev-1.9/develop",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fuel/core.git",
-                "reference": "bdf73481ac1f86fdbb49742a951877b9d22881d1"
+                "reference": "050c3147b1d889223701b63e22f60e90bf46cc1e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fuel/core/zipball/bdf73481ac1f86fdbb49742a951877b9d22881d1",
-                "reference": "bdf73481ac1f86fdbb49742a951877b9d22881d1",
+                "url": "https://api.github.com/repos/fuel/core/zipball/050c3147b1d889223701b63e22f60e90bf46cc1e",
+                "reference": "050c3147b1d889223701b63e22f60e90bf46cc1e",
                 "shasum": ""
             },
             "require": {
-                "composer/installers": "^2.3.0",
-                "michelf/php-markdown": "~1.9.1",
-                "monolog/monolog": "^1.18|^2|^3",
-                "paragonie/sodium_compat": "^1|^2",
-                "phpseclib/phpseclib": "~3.0"
+                "composer/installers": "~1.0",
+                "michelf/php-markdown": "1.7.0",
+                "monolog/monolog": "^1.18",
+                "paragonie/sodium_compat": "^1.6",
+                "phpseclib/phpseclib": "^2.0.0"
             },
-            "default-branch": true,
             "type": "fuel-package",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -226,28 +229,27 @@
             "homepage": "https://github.com/fuel/core",
             "support": {
                 "issues": "https://github.com/fuel/core/issues",
-                "source": "https://github.com/fuel/core/tree/1.9/develop"
+                "source": "https://github.com/fuel/core/tree/1.8.2"
             },
-            "time": "2026-08-21T12:54:50+00:00"
+            "time": "2019-06-27T14:56:04+00:00"
         },
         {
             "name": "fuel/email",
-            "version": "dev-1.9/develop",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fuel/email.git",
-                "reference": "be84dc6963a07c79d9d099c2bdebd20c14954ebf"
+                "reference": "b7fb81332d373594c370f12706cd7108ca1d01be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fuel/email/zipball/be84dc6963a07c79d9d099c2bdebd20c14954ebf",
-                "reference": "be84dc6963a07c79d9d099c2bdebd20c14954ebf",
+                "url": "https://api.github.com/repos/fuel/email/zipball/b7fb81332d373594c370f12706cd7108ca1d01be",
+                "reference": "b7fb81332d373594c370f12706cd7108ca1d01be",
                 "shasum": ""
             },
             "require": {
-                "composer/installers": "^2.3.0"
+                "composer/installers": "~1.0"
             },
-            "default-branch": true,
             "type": "fuel-package",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -263,28 +265,27 @@
             "homepage": "https://github.com/fuel/email",
             "support": {
                 "issues": "https://github.com/fuel/email/issues",
-                "source": "https://github.com/fuel/email/tree/1.9/develop"
+                "source": "https://github.com/fuel/email/tree/1.8.2"
             },
-            "time": "2026-04-14T12:29:53+00:00"
+            "time": "2019-06-27T14:58:38+00:00"
         },
         {
             "name": "fuel/oil",
-            "version": "dev-1.9/develop",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fuel/oil.git",
-                "reference": "3d877923014a3a842bf15ea761efa8781389aa20"
+                "reference": "8d3685c592e7a5161d29fc7a03ed61dacdada595"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fuel/oil/zipball/3d877923014a3a842bf15ea761efa8781389aa20",
-                "reference": "3d877923014a3a842bf15ea761efa8781389aa20",
+                "url": "https://api.github.com/repos/fuel/oil/zipball/8d3685c592e7a5161d29fc7a03ed61dacdada595",
+                "reference": "8d3685c592e7a5161d29fc7a03ed61dacdada595",
                 "shasum": ""
             },
             "require": {
-                "composer/installers": "^2.3.0"
+                "composer/installers": "~1.0"
             },
-            "default-branch": true,
             "type": "fuel-package",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -300,28 +301,27 @@
             "homepage": "https://github.com/fuel/oil",
             "support": {
                 "issues": "https://github.com/fuel/oil/issues",
-                "source": "https://github.com/fuel/oil/tree/1.9/develop"
+                "source": "https://github.com/fuel/oil/tree/1.8.2"
             },
-            "time": "2026-01-14T16:48:56+00:00"
+            "time": "2019-06-27T14:58:13+00:00"
         },
         {
             "name": "fuel/orm",
-            "version": "dev-1.9/develop",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fuel/orm.git",
-                "reference": "4bb791363d26a7b191db6bd52990c5348cc2030a"
+                "reference": "70deb9fbc5f42c364036cb4c27f9e1185019e657"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fuel/orm/zipball/4bb791363d26a7b191db6bd52990c5348cc2030a",
-                "reference": "4bb791363d26a7b191db6bd52990c5348cc2030a",
+                "url": "https://api.github.com/repos/fuel/orm/zipball/70deb9fbc5f42c364036cb4c27f9e1185019e657",
+                "reference": "70deb9fbc5f42c364036cb4c27f9e1185019e657",
                 "shasum": ""
             },
             "require": {
-                "composer/installers": "^2.3.0"
+                "composer/installers": "~1.0"
             },
-            "default-branch": true,
             "type": "fuel-package",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -337,28 +337,27 @@
             "homepage": "https://github.com/fuel/orm",
             "support": {
                 "issues": "https://github.com/fuel/orm/issues",
-                "source": "https://github.com/fuel/orm/tree/1.9/develop"
+                "source": "https://github.com/fuel/orm/tree/1.8.2"
             },
-            "time": "2026-08-24T19:32:07+00:00"
+            "time": "2019-06-27T14:57:32+00:00"
         },
         {
             "name": "fuel/parser",
-            "version": "dev-1.9/develop",
+            "version": "1.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/fuel/parser.git",
-                "reference": "679eaf0344d538ae30043d30374ad462da08ec59"
+                "reference": "1e4c52b60dec72a4df6d3757db74904ab7cda9ef"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fuel/parser/zipball/679eaf0344d538ae30043d30374ad462da08ec59",
-                "reference": "679eaf0344d538ae30043d30374ad462da08ec59",
+                "url": "https://api.github.com/repos/fuel/parser/zipball/1e4c52b60dec72a4df6d3757db74904ab7cda9ef",
+                "reference": "1e4c52b60dec72a4df6d3757db74904ab7cda9ef",
                 "shasum": ""
             },
             "require": {
-                "composer/installers": "^2.3.0"
+                "composer/installers": "~1.0"
             },
-            "default-branch": true,
             "type": "fuel-package",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -374,9 +373,9 @@
             "homepage": "https://github.com/fuel/parser",
             "support": {
                 "issues": "https://github.com/fuel/parser/issues",
-                "source": "https://github.com/fuel/parser/tree/1.9/develop"
+                "source": "https://github.com/fuel/parser/tree/1.8.2"
             },
-            "time": "2026-01-05T19:59:43+00:00"
+            "time": "2019-06-27T14:57:06+00:00"
         },
         {
             "name": "fuelphp/upload",
@@ -434,28 +433,30 @@
         },
         {
             "name": "michelf/php-markdown",
-            "version": "1.9.1",
+            "version": "1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/michelf/php-markdown.git",
-                "reference": "5024d623c1a057dcd2d076d25b7d270a1d0d55f3"
+                "reference": "1f51cc520948f66cd2af8cbc45a5ee175e774220"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/5024d623c1a057dcd2d076d25b7d270a1d0d55f3",
-                "reference": "5024d623c1a057dcd2d076d25b7d270a1d0d55f3",
+                "url": "https://api.github.com/repos/michelf/php-markdown/zipball/1f51cc520948f66cd2af8cbc45a5ee175e774220",
+                "reference": "1f51cc520948f66cd2af8cbc45a5ee175e774220",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
-            "require-dev": {
-                "phpunit/phpunit": ">=4.3 <5.8"
-            },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-lib": "1.4.x-dev"
+                }
+            },
             "autoload": {
-                "psr-4": {
-                    "Michelf\\": "Michelf/"
+                "psr-0": {
+                    "Michelf": ""
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -481,74 +482,57 @@
             ],
             "support": {
                 "issues": "https://github.com/michelf/php-markdown/issues",
-                "source": "https://github.com/michelf/php-markdown/tree/1.9.1"
+                "source": "https://github.com/michelf/php-markdown/tree/1.7.0"
             },
-            "time": "2021-11-24T02:52:38+00:00"
+            "time": "2016-10-29T18:58:20+00:00"
         },
         {
             "name": "monolog/monolog",
-            "version": "3.10.0",
+            "version": "1.27.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "b321dd6749f0bf7189444158a3ce785cc16d69b0"
+                "reference": "904713c5929655dc9b97288b69cfeedad610c9a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/b321dd6749f0bf7189444158a3ce785cc16d69b0",
-                "reference": "b321dd6749f0bf7189444158a3ce785cc16d69b0",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/904713c5929655dc9b97288b69cfeedad610c9a1",
+                "reference": "904713c5929655dc9b97288b69cfeedad610c9a1",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.1",
-                "psr/log": "^2.0 || ^3.0"
+                "php": ">=5.3.0",
+                "psr/log": "~1.0"
             },
             "provide": {
-                "psr/log-implementation": "3.0.0"
+                "psr/log-implementation": "1.0.0"
             },
             "require-dev": {
-                "aws/aws-sdk-php": "^3.0",
+                "aws/aws-sdk-php": "^2.4.9 || ^3.0",
                 "doctrine/couchdb": "~1.0@dev",
-                "elasticsearch/elasticsearch": "^7 || ^8",
-                "ext-json": "*",
-                "graylog2/gelf-php": "^1.4.2 || ^2.0",
-                "guzzlehttp/guzzle": "^7.4.5",
-                "guzzlehttp/psr7": "^2.2",
-                "mongodb/mongodb": "^1.8 || ^2.0",
-                "php-amqplib/php-amqplib": "~2.4 || ^3",
-                "php-console/php-console": "^3.1.8",
-                "phpstan/phpstan": "^2",
-                "phpstan/phpstan-deprecation-rules": "^2",
-                "phpstan/phpstan-strict-rules": "^2",
-                "phpunit/phpunit": "^10.5.17 || ^11.0.7",
-                "predis/predis": "^1.1 || ^2",
-                "rollbar/rollbar": "^4.0",
-                "ruflin/elastica": "^7 || ^8",
-                "symfony/mailer": "^5.4 || ^6",
-                "symfony/mime": "^5.4 || ^6"
+                "graylog2/gelf-php": "~1.0",
+                "php-amqplib/php-amqplib": "~2.4",
+                "php-console/php-console": "^3.1.3",
+                "phpstan/phpstan": "^0.12.59",
+                "phpunit/phpunit": "~4.5",
+                "ruflin/elastica": ">=0.90 <3.0",
+                "sentry/sentry": "^0.13",
+                "swiftmailer/swiftmailer": "^5.3|^6.0"
             },
             "suggest": {
                 "aws/aws-sdk-php": "Allow sending log messages to AWS services like DynamoDB",
                 "doctrine/couchdb": "Allow sending log messages to a CouchDB server",
-                "elasticsearch/elasticsearch": "Allow sending log messages to an Elasticsearch server via official client",
                 "ext-amqp": "Allow sending log messages to an AMQP server (1.0+ required)",
-                "ext-curl": "Required to send log messages using the IFTTTHandler, the LogglyHandler, the SendGridHandler, the SlackWebhookHandler or the TelegramBotHandler",
-                "ext-mbstring": "Allow to work properly with unicode symbols",
-                "ext-mongodb": "Allow sending log messages to a MongoDB server (via driver)",
-                "ext-openssl": "Required to send log messages using SSL",
-                "ext-sockets": "Allow sending log messages to a Syslog server (via UDP driver)",
+                "ext-mongo": "Allow sending log messages to a MongoDB server",
                 "graylog2/gelf-php": "Allow sending log messages to a GrayLog2 server",
-                "mongodb/mongodb": "Allow sending log messages to a MongoDB server (via library)",
+                "mongodb/mongodb": "Allow sending log messages to a MongoDB server via PHP Driver",
                 "php-amqplib/php-amqplib": "Allow sending log messages to an AMQP server using php-amqplib",
+                "php-console/php-console": "Allow sending log messages to Google Chrome",
                 "rollbar/rollbar": "Allow sending log messages to Rollbar",
-                "ruflin/elastica": "Allow sending log messages to an Elastic Search server"
+                "ruflin/elastica": "Allow sending log messages to an Elastic Search server",
+                "sentry/sentry": "Allow sending log messages to a Sentry server"
             },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "3.x-dev"
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "Monolog\\": "src/Monolog"
@@ -562,11 +546,11 @@
                 {
                     "name": "Jordi Boggiano",
                     "email": "j.boggiano@seld.be",
-                    "homepage": "https://seld.be"
+                    "homepage": "http://seld.be"
                 }
             ],
             "description": "Sends your logs to files, sockets, inboxes, databases and various web services",
-            "homepage": "https://github.com/Seldaek/monolog",
+            "homepage": "http://github.com/Seldaek/monolog",
             "keywords": [
                 "log",
                 "logging",
@@ -574,7 +558,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/3.10.0"
+                "source": "https://github.com/Seldaek/monolog/tree/1.27.1"
             },
             "funding": [
                 {
@@ -586,76 +570,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-02T08:56:05+00:00"
-        },
-        {
-            "name": "paragonie/constant_time_encoding",
-            "version": "v3.1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/paragonie/constant_time_encoding.git",
-                "reference": "d5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/constant_time_encoding/zipball/d5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77",
-                "reference": "d5b01a39b3415c2cd581d3bd3a3575c1ebbd8e77",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8"
-            },
-            "require-dev": {
-                "infection/infection": "^0",
-                "nikic/php-fuzzer": "^0",
-                "phpunit/phpunit": "^9|^10|^11",
-                "vimeo/psalm": "^4|^5|^6"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "ParagonIE\\ConstantTime\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Paragon Initiative Enterprises",
-                    "email": "security@paragonie.com",
-                    "homepage": "https://paragonie.com",
-                    "role": "Maintainer"
-                },
-                {
-                    "name": "Steve 'Sc00bz' Thomas",
-                    "email": "steve@tobtu.com",
-                    "homepage": "https://www.tobtu.com",
-                    "role": "Original Developer"
-                }
-            ],
-            "description": "Constant-time Implementations of RFC 4648 Encoding (Base-64, Base-32, Base-16)",
-            "keywords": [
-                "base16",
-                "base32",
-                "base32_decode",
-                "base32_encode",
-                "base64",
-                "base64_decode",
-                "base64_encode",
-                "bin2hex",
-                "encoding",
-                "hex",
-                "hex2bin",
-                "rfc4648"
-            ],
-            "support": {
-                "email": "info@paragonie.com",
-                "issues": "https://github.com/paragonie/constant_time_encoding/issues",
-                "source": "https://github.com/paragonie/constant_time_encoding"
-            },
-            "time": "2025-09-24T15:06:41+00:00"
+            "time": "2022-06-09T08:53:42+00:00"
         },
         {
             "name": "paragonie/random_compat",
@@ -709,44 +624,34 @@
         },
         {
             "name": "paragonie/sodium_compat",
-            "version": "v2.5.2",
+            "version": "v1.24.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/paragonie/sodium_compat.git",
-                "reference": "3246b36803c177847e677862fedeb7f937869adb"
+                "reference": "4524c98a826776c9a32d6ce06932563cb10f3995"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paragonie/sodium_compat/zipball/3246b36803c177847e677862fedeb7f937869adb",
-                "reference": "3246b36803c177847e677862fedeb7f937869adb",
+                "url": "https://api.github.com/repos/paragonie/sodium_compat/zipball/4524c98a826776c9a32d6ce06932563cb10f3995",
+                "reference": "4524c98a826776c9a32d6ce06932563cb10f3995",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.1",
-                "php-64bit": "*"
+                "paragonie/random_compat": ">=1",
+                "php": "^5.2.4|^5.3|^5.4|^5.5|^5.6|^7|^8"
             },
             "require-dev": {
-                "infection/infection": "^0",
-                "nikic/php-fuzzer": "^0",
-                "phpunit/phpunit": "^7|^8|^9|^10|^11",
-                "vimeo/psalm": "^4|^5|^6"
+                "phpunit/phpunit": "^3|^4|^5|^6|^7|^8|^9"
             },
             "suggest": {
-                "ext-sodium": "Better performance, password hashing (Argon2i), secure memory management (memzero), and better security."
+                "ext-libsodium": "PHP < 7.0: Better performance, password hashing (Argon2i), secure memory management (memzero), and better security.",
+                "ext-sodium": "PHP >= 7.0: Better performance, password hashing (Argon2i), secure memory management (memzero), and better security."
             },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
             "autoload": {
                 "files": [
                     "autoload.php"
-                ],
-                "psr-4": {
-                    "ParagonIE\\Sodium\\": "namespaced/"
-                }
+                ]
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -799,38 +704,38 @@
             ],
             "support": {
                 "issues": "https://github.com/paragonie/sodium_compat/issues",
-                "source": "https://github.com/paragonie/sodium_compat/tree/v2.5.2"
+                "source": "https://github.com/paragonie/sodium_compat/tree/v1.24.2"
             },
-            "time": "2026-08-18T23:46:48+00:00"
+            "time": "2026-08-18T23:44:07+00:00"
         },
         {
             "name": "phpseclib/phpseclib",
-            "version": "3.0.57",
+            "version": "2.0.55",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpseclib/phpseclib.git",
-                "reference": "d17e0ddaeaf6f22f7e007cbb437d78792fe2a0e4"
+                "reference": "d73c9e019a895be83b18a2ccccfa7e2b0a648743"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/d17e0ddaeaf6f22f7e007cbb437d78792fe2a0e4",
-                "reference": "d17e0ddaeaf6f22f7e007cbb437d78792fe2a0e4",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/d73c9e019a895be83b18a2ccccfa7e2b0a648743",
+                "reference": "d73c9e019a895be83b18a2ccccfa7e2b0a648743",
                 "shasum": ""
             },
             "require": {
-                "paragonie/constant_time_encoding": "^1|^2|^3",
-                "paragonie/random_compat": "^1.4|^2.0|^9.99.99",
-                "php": ">=5.6.1"
+                "php": ">=5.3.3"
             },
             "require-dev": {
-                "phpunit/phpunit": "*"
+                "phing/phing": "~2.7",
+                "phpunit/phpunit": "^4.8.35|^5.7|^6.0|^8.5|^9.4",
+                "squizlabs/php_codesniffer": "~2.0"
             },
             "suggest": {
-                "ext-dom": "Install the DOM extension to load XML formatted public keys.",
                 "ext-gmp": "Install the GMP (GNU Multiple Precision) extension in order to speed up arbitrary precision integer arithmetic operations.",
                 "ext-libsodium": "SSH2/SFTP can make use of some algorithms provided by the libsodium-php extension.",
                 "ext-mcrypt": "Install the Mcrypt extension in order to speed up a few other cryptographic operations.",
-                "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations."
+                "ext-openssl": "Install the OpenSSL extension in order to speed up a wide variety of cryptographic operations.",
+                "ext-xml": "Install the XML extension to load XML formatted public keys."
             },
             "type": "library",
             "autoload": {
@@ -838,7 +743,7 @@
                     "phpseclib/bootstrap.php"
                 ],
                 "psr-4": {
-                    "phpseclib3\\": "phpseclib/"
+                    "phpseclib\\": "phpseclib/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -895,7 +800,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpseclib/phpseclib/issues",
-                "source": "https://github.com/phpseclib/phpseclib/tree/3.0.57"
+                "source": "https://github.com/phpseclib/phpseclib/tree/2.0.55"
             },
             "funding": [
                 {
@@ -911,34 +816,34 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-26T12:13:21+00:00"
+            "time": "2026-06-14T19:53:12+00:00"
         },
         {
             "name": "psr/log",
-            "version": "3.0.2",
+            "version": "1.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
+                "reference": "d49695b909c3b7628b6289db5479a1c204601f11"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
-                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/d49695b909c3b7628b6289db5479a1c204601f11",
+                "reference": "d49695b909c3b7628b6289db5479a1c204601f11",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.0.0"
+                "php": ">=5.3.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.x-dev"
+                    "dev-master": "1.1.x-dev"
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Psr\\Log\\": "src"
+                    "Psr\\Log\\": "Psr/Log/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -959,22 +864,15 @@
                 "psr-3"
             ],
             "support": {
-                "source": "https://github.com/php-fig/log/tree/3.0.2"
+                "source": "https://github.com/php-fig/log/tree/1.1.4"
             },
-            "time": "2024-09-11T13:17:53+00:00"
+            "time": "2021-05-03T11:20:27+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "fuel/auth": 20,
-        "fuel/core": 20,
-        "fuel/email": 20,
-        "fuel/oil": 20,
-        "fuel/orm": 20,
-        "fuel/parser": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

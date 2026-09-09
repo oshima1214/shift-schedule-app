@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -92,7 +92,7 @@ class Session
             'created'      => array('constraint' => 10, 'type' => 'int', 'unsigned' => true),
             'updated'      => array('constraint' => 10, 'type' => 'int', 'unsigned' => true),
             'payload'      => array('type' => 'longtext'),
-        ), array('session_id'), false, false, \Config::get('db.default.charset'));
+        ), array('session_id'), false, 'InnoDB', \Config::get('db.default.charset'));
 
         // make previous_id a unique_key. speeds up query and prevents duplicate id's
         \DBUtil::create_index(\Config::get('session.db.table'), 'previous_id', 'previous_id', 'unique');
@@ -161,23 +161,17 @@ class Session
     public static function help()
     {
         echo <<<HELP
-Description:
-    The session task will create the necessary db tables.
+            Usage:
+                php oil refine session
 
-Usage:
-    php oil refine session[:command]
+            Description:
+                The session task will create the necessary db tables.
 
-Task commands:
-    help       Shows this text
-	create     Creates the session table
-	remove     Deletes the session table
-	clear      Deletes all records in the session table
-
-Examples:
-    php oil r session:create
-    php oil r session:remove
-    php oil r session:clear
-    php oil r session:help
+            Examples:
+                php oil r session:create
+                php oil r session:remove
+                php oil r session:clear
+                php oil r session:help
 
 HELP;
     }

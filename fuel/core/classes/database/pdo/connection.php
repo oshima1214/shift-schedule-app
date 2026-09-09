@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  *
@@ -32,8 +32,8 @@ class Database_PDO_Connection extends \Database_Connection
 	 */
 	protected function __construct($name, array $config)
 	{
-		// use the MySQL schema processor for generic PDO connections
-		$this->_schema = new \Database_MYSQL_Schema($name, $this);
+		// example of constructing a custom schema driver
+		# $this->_schema = new \Database_<drivername>_Schema($name, $this);
 
 		// call the parent consructor
 		parent::__construct($name, $config);
@@ -83,18 +83,8 @@ class Database_PDO_Connection extends \Database_Connection
 				$error_code = 0;
 			}
 
-			throw new \Database_Exception(str_replace(isset($this->_config['connection']['password']) ? $this->_config['connection']['password'] : '', str_repeat('*', 10), $e->getMessage()), $e->getCode(), $e, $error_code);
+			throw new \Database_Exception(str_replace($this->_config['connection']['password'], str_repeat('*', 10), $e->getMessage()), $e->getCode(), $e, $error_code);
 		}
-
-		// set the DB charset if needed
-		$this->set_charset($this->_config['charset']);
-
-		// any post-connect commands defined?
-		if ( ! empty($this->_config['command']))
-		{
-			$x = $this->_connection->exec($this->_config['command']);
-		}
-
 	}
 
 	/**
@@ -205,28 +195,65 @@ class Database_PDO_Connection extends \Database_Connection
 			$benchmark = \Profiler::start($this->_instance, $sql, $stacktrace);
 		}
 
-		try
-		{
-			// try to run the query
-			$result = $this->_connection->query($sql);
-		}
-		catch (\Exception $e)
-		{
-			// other database error, cleanup the profiler
-			isset($benchmark) and  \Profiler::delete($benchmark);
+		// run the query. if the connection is lost, try 3 times to reconnect
+		$attempts = 3;
 
-			if ($this->_connection)
+		do
+		{
+			try
 			{
-				$error_code = $this->_connection->errorinfo();
-				$error_code = $error_code[1];
+				// try to run the query
+				$result = $this->_connection->query($sql);
+				break;
 			}
-			else
+			catch (\Exception $e)
 			{
-				$error_code = 0;
-			}
+				// if failed and we have attempts left
+				if ($attempts > 0)
+				{
+					// try reconnecting if it was a MySQL disconnected error
+					if (strpos($e->getMessage(), '2006 MySQL') !== false)
+					{
+						$this->disconnect();
+						$this->connect();
+					}
+					else
+					{
+						// other database error, cleanup the profiler
+						isset($benchmark) and  \Profiler::delete($benchmark);
 
-			throw new \Database_Exception($e->getMessage().' with query: "'.$sql.'"', $e->getCode(), $e, $error_code);
+						if ($this->_connection)
+						{
+							$error_code = $this->_connection->errorinfo();
+							$error_code = $error_code[1];
+						}
+						else
+						{
+							$error_code = 0;
+						}
+
+						throw new \Database_Exception($e->getMessage().' with query: "'.$sql.'"', $e->getCode(), $e, $error_code);
+					}
+				}
+
+				// no more attempts left, bail out
+				else
+				{
+					if ($this->_connection)
+					{
+						$error_code = $this->_connection->errorinfo();
+						$error_code = $error_code[1];
+					}
+					else
+					{
+						$error_code = 0;
+					}
+
+					throw new \Database_Exception($e->getMessage().' with query: "'.$sql.'"', $e->getCode(), $e, $error_code);
+				}
+			}
 		}
+		while ($attempts-- > 0);
 
 		// check if PDO ERROR Exceptions aren't disabled for some reason
 		if ($result === false)
@@ -299,7 +326,7 @@ class Database_PDO_Connection extends \Database_Connection
 	}
 
 	/**
-	 * List table columns using DESCRIBE
+	 * List table columns
 	 *
 	 * @param string $table
 	 * @param string $like
@@ -308,46 +335,41 @@ class Database_PDO_Connection extends \Database_Connection
 	 */
 	public function list_columns($table, $like = null)
 	{
-		// get the table description
 		$this->_connection or $this->connect();
 		$q = $this->_connection->prepare("DESCRIBE ".$this->quote_table($table));
 		$q->execute();
 		$result  = $q->fetchAll();
-
-		// convert SQL LIKE syntax to regex syntax
-		is_null($like) or $like = str_replace('%', '.*', $like);
-
 		$count   = 0;
 		$columns = array();
-
+		! is_null($like) and $like = str_replace('%', '.*', $like);
 		foreach ($result as $row)
 		{
-			// use like as a filter if given
-			if (isset($like) and ! preg_match('#'.$like.'#', $row['Field']))
+			if ( ! is_null($like) and ! preg_match('#'.$like.'#', $row['Field']))
 			{
 				continue;
 			}
-
-			// split length from the returned type
 			list($type, $length) = $this->_parse_type($row['Type']);
 
-			// base type data
 			$column = $this->datatype($type);
 
-			// unify returned row information
-			$column['name'] = $row['Field'];
-			$column['default'] = $row['Default'];
-			$column['data_type'] = $type;
-			$column['null'] = ($row['Null'] == 'YES');
+			$column['name']             = $row['Field'];
+			$column['default']          = $row['Default'];
+			$column['data_type']        = $type;
+			$column['null']             = ($row['Null'] == 'YES');
 			$column['ordinal_position'] = ++$count;
-
-			// add type-specific data
 			switch ($column['type'])
 			{
 				case 'float':
 					if (isset($length))
 					{
 						list($column['numeric_precision'], $column['numeric_scale']) = explode(',', $length);
+					}
+					break;
+				case 'int':
+					if (isset($length))
+					{
+						// MySQL attribute
+						$column['display'] = $length;
 					}
 					break;
 				case 'string':
@@ -371,14 +393,19 @@ class Database_PDO_Connection extends \Database_Connection
 						case 'enum':
 						case 'set':
 							$column['collation_name'] = isset($row['Collation']) ? $row['Collation'] : null;
-							$column['options'] = explode('\',\'', substr($length, 1, - 1));
+							$column['options']        = explode('\',\'', substr($length, 1, - 1));
 							break;
 					}
 					break;
 			}
 
-			// add driver specific attributes, and store it
-			$columns[$row['Field']] = $this->_list_column($column, $row, $type, $length);
+			// MySQL attributes
+			$column['comment']    = isset($row['Comment']) ? $row['Comment'] : null;
+			$column['extra']      = $row['Extra'];
+			$column['key']        = $row['Key'];
+			$column['privileges'] = isset($row['Privileges']) ? $row['Privileges'] : null;
+
+			$columns[$row['Field']] = $column;
 		}
 
 		return $columns;
@@ -448,7 +475,6 @@ class Database_PDO_Connection extends \Database_Connection
 				$result = "'".str_replace("'", "''", $value)."'";
 			}
 		}
-
 		return $result;
 	}
 
@@ -475,6 +501,9 @@ class Database_PDO_Connection extends \Database_Connection
 			$this->_config['connection']['password'],
 			$this->_config['attrs']
 		);
+
+		// set the DB charset if needed
+		$this->set_charset($this->_config['charset']);
 	}
 
 	/**

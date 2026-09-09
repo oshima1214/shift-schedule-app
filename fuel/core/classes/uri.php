@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -152,9 +152,6 @@ class Uri
 	{
 		$url = '';
 		is_null($uri) and $uri = static::string();
-
-		// uri can be null at this point. Prevent it to avoid error with preg_match in php 8.1
-		is_null($uri) and $uri = '';
 
 		// If the given uri is not a full URL
 		if( ! preg_match("#^(http|https|ftp)://#i", $uri))
@@ -331,7 +328,7 @@ class Uri
 		$this->uri = trim($uri, '/');
 
 		// determine the uri segment list
-		if (empty($this->uri))
+		if (empty($uri))
 		{
 			$this->segments = array();
 		}

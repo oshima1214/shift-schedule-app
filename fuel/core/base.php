@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -21,10 +21,10 @@ if (PHP_VERSION_ID >= 50600)
  */
 if ( ! function_exists('is_windows'))
 {
-	function is_windows()
-	{
-		return DIRECTORY_SEPARATOR === '\\';
-	}
+ 	function is_windows()
+ 	{
+ 		return DIRECTORY_SEPARATOR === '/';
+ 	}
 }
 
 /**
@@ -99,14 +99,6 @@ if ( ! function_exists('array_to_attr'))
 			{
 				$property = $value;
 			}
-			elseif(is_bool($value))
-			{
-				if ($value === false)
-				{
-					continue;
-				}
-				$value = $property;
-			}
 
 			$attr_str .= $property.'="'.str_replace('"', '&quot;', $value).'" ';
 		}
@@ -121,12 +113,12 @@ if ( ! function_exists('array_to_attr'))
  *
  * @param	string			The tag name
  * @param	array|string	The tag attributes
- * @param	string			The content to place in the tag, or false for no closing tag
+ * @param	string|bool		The content to place in the tag, or false for no closing tag
  * @return	string
  */
 if ( ! function_exists('html_tag'))
 {
-	function html_tag($tag, $attr = array(), $content = '')
+	function html_tag($tag, $attr = array(), $content = false)
 	{
 		// list of void elements (tags that can not have content)
 		static $void_elements = array(
@@ -151,7 +143,7 @@ if ( ! function_exists('html_tag'))
 		else
 		{
 			// add the content and close the tag
-			$html .= '>'.(empty($content) ? '' : $content).'</'.$tag.'>';
+			$html .= '>'.$content.'</'.$tag.'>';
 		}
 
 		return $html;
@@ -170,6 +162,20 @@ if ( ! function_exists('in_arrayi'))
 	function in_arrayi($needle, $haystack)
 	{
 		return in_array(strtolower($needle), array_map('strtolower', $haystack));
+	}
+}
+
+/**
+ * Gets all the public vars for an object.  Use this if you need to get all the
+ * public vars of $this inside an object.
+ *
+ * @return	array
+ */
+if ( ! function_exists('get_object_public_vars'))
+{
+	function get_object_public_vars($obj)
+	{
+		return get_object_vars($obj);
 	}
 }
 
@@ -393,28 +399,6 @@ if ( ! function_exists('get_common_path'))
 }
 
 /**
- * Creates a temporary directory with a unique name
- */
-if ( ! function_exists('tempdir'))
-{
-	function tempdir()
-	{
-		// create a temp file
-		if ($tempdir = tempnam(sys_get_temp_dir(), 'fuel'))
-		{
-			// delete it
-			unlink($tempdir);
-
-			// so we can recreate it as a directory
-			mkdir($tempdir);
-		}
-
-		// return the created path (or false on failure)
-		return $tempdir;
-	}
-}
-
-/**
  * Faster equivalent of call_user_func_array
  */
 if ( ! function_exists('call_fuel_func_array'))
@@ -518,137 +502,39 @@ if ( ! function_exists('call_fuel_func_array'))
  */
 if ( ! function_exists('hash_pbkdf2'))
 {
-	/* PBKDF2 Implementation (described in RFC 2898)
-	 *
-	 *  @param string a   hash algorithm to use
-	 *  @param string p   password
-	 *  @param string s   salt
-	 *  @param int    c   iteration count (use 1000 or higher)
-	 *  @param int    kl  derived key length
-	 *  @param bool   r   when set to TRUE, outputs raw binary data. FALSE outputs lowercase hexits.
-	 *
-	 *  @return string derived key
-	 */
-	function hash_pbkdf2($a, $p, $s, $c, $kl = 0, $r = false)
-	{
-		$hl = strlen(hash($a, null, true)); # Hash length
-		$kb = ceil($kl / $hl);              # Key blocks to compute
-		$dk = '';                           # Derived key
+    /* PBKDF2 Implementation (described in RFC 2898)
+     *
+     *  @param string a   hash algorithm to use
+     *  @param string p   password
+     *  @param string s   salt
+     *  @param int    c   iteration count (use 1000 or higher)
+     *  @param int    kl  derived key length
+     *  @param bool   r   when set to TRUE, outputs raw binary data. FALSE outputs lowercase hexits.
+     *
+     *  @return string derived key
+     */
+    function hash_pbkdf2($a, $p, $s, $c, $kl = 0, $r = false)
+    {
+        $hl = strlen(hash($a, null, true)); # Hash length
+        $kb = ceil($kl / $hl);              # Key blocks to compute
+        $dk = '';                           # Derived key
 
-		# Create key
-		for ( $block = 1; $block <= $kb; $block ++ )
-		{
-			# Initial hash for this block
-			$ib = $b = hash_hmac($a, $s . pack('N', $block), $p, true);
+        # Create key
+        for ( $block = 1; $block <= $kb; $block ++ )
+        {
+            # Initial hash for this block
+            $ib = $b = hash_hmac($a, $s . pack('N', $block), $p, true);
 
-			# Perform block iterations
-			for ( $i = 1; $i < $c; $i ++ )
-			{
-				# XOR each iterate
-				$ib ^= ($b = hash_hmac($a, $b, $p, true));
-			}
-			$dk .= $ib; # Append iterated block
-		}
+            # Perform block iterations
+            for ( $i = 1; $i < $c; $i ++ )
+            {
+                # XOR each iterate
+                $ib ^= ($b = hash_hmac($a, $b, $p, true));
+            }
+            $dk .= $ib; # Append iterated block
+        }
 
-		# Return derived key of correct length
+        # Return derived key of correct length
 		return substr($r ? $dk : bin2hex($dk), 0, $kl);
-	}
-}
-
-if ( ! function_exists('is_uuid'))
-{
-	/**
-	 * Check if a given string is a valid UUID
-	 *
-	 * @param   mixed  $uuid   The string to check
-	 * @return  boolean
-	 */
-	function is_uuid($uuid)
-	{
-		return is_string($uuid) && preg_match('/^[a-f\d]{8}(-[a-f\d]{4}){4}[a-f\d]{8}$/i', $uuid);
-	}
-}
-
-/**
- * array_key_first for PHP < 7.3.0
- */
-if ( ! function_exists('array_key_first'))
-{
-	function array_key_first(array $arr)
-	{
-		foreach ($arr as $key => $unused)
-		{
-			return $key;
-		}
-		return null;
-	}
-}
-
-/**
- * array_key_last for PHP < 7.3.0
- */
-if ( ! function_exists('array_key_last'))
-{
-	function array_key_last(array $array)
-	{
-		if( ! empty($array))
-		{
-			return key(array_slice($array, -1, 1, true));
-		}
-
-		return null;
-	}
-}
-
-/**
- * array_first for PHP < 8.5.0
- */
-if ( ! function_exists('array_first'))
-{
-	/**
-	 * Returns the first value of a given array.
-	 *
-	 * @param array $array The array to get the first value of.
-	 * @return mixed First value of the array, or null if the array is
-	 *   empty. Note that null itself can also be a valid array value.
-	 */
-	function array_first(array $array)
-	{
-		return $array === [] ? null : $array[array_key_first($array)];
-	}
-}
-
-/**
- * array_last for PHP < 8.5.0
- */
-if ( ! function_exists('array_last'))
-{
-	/**
-	 * Returns the last value of a given array.
-	 *
-	 * @param array $array The array to get the last value of.
-	 * @return mixed Last value of the array, or null if the array is
-	 *   empty. Note that null itself can also be a valid array value.
-	 */
-	function array_last(array $array)
-	{
-		return $array === [] ? null : $array[array_key_last($array)];
-	}
-}
-
-/**
- * json_validate for PHP < 8.3.0
- */
-if ( ! function_exists('json_validate'))
-{
-	function json_validate($json, $depth = 512, $flags = 0)
-	{
-		if ( ! is_string($json))
-		{
-			return false;
-		}
-
-		json_decode($json, false, $depth, $flags);
-		return json_last_error() === JSON_ERROR_NONE;
 	}
 }

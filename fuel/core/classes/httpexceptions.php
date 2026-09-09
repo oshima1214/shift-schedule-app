@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -16,7 +16,7 @@ class HttpBadRequestException extends HttpException
 {
 	public function response()
 	{
-		return new \Response(\View::forge('400')->set('message', $this->getMessage()), 400);
+		return new \Response(\View::forge('400'), 400);
 	}
 }
 
@@ -24,7 +24,7 @@ class HttpNoAccessException extends HttpException
 {
 	public function response()
 	{
-		return new \Response(\View::forge('403')->set('message', $this->getMessage()), 403);
+		return new \Response(\View::forge('403'), 403);
 	}
 }
 
@@ -32,7 +32,7 @@ class HttpNotFoundException extends HttpException
 {
 	public function response()
 	{
-		return new \Response(\View::forge('404')->set('message', $this->getMessage()), 404);
+		return new \Response(\View::forge('404'), 404);
 	}
 }
 
@@ -40,6 +40,6 @@ class HttpServerErrorException extends HttpException
 {
 	public function response()
 	{
-		return new \Response(\View::forge('500')->set('message', $this->getMessage()), 500);
+		return new \Response(\View::forge('500'), 500);
 	}
 }

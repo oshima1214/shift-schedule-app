@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -20,18 +20,7 @@ class Email_Driver_Mailgun extends \Email_Driver
 
 		$message = $this->build_message();
 
-		$config_mailgun = $this->config['mailgun'];
-
-		$endpoint = isset($config_mailgun['endpoint']) ? $config_mailgun['endpoint'] : null;
-
-		if (empty($endpoint))
-		{
-			$mg = \Mailgun\Mailgun::create($config_mailgun['key']);
-		}
-		else
-		{
-			$mg = \Mailgun\Mailgun::create($config_mailgun['key'], $endpoint);
-		}
+		$mg = \Mailgun\Mailgun::create($this->config['mailgun']['key']);
 
 		// Mailgun does not consider these "arbitrary headers"
 		$exclude = array('From'=>'From', 'To'=>'To', 'Cc'=>'Cc', 'Bcc'=>'Bcc', 'Subject'=>'Subject', 'Content-Type'=>'Content-Type', 'Content-Transfer-Encoding' => 'Content-Transfer-Encoding');
@@ -74,7 +63,7 @@ class Email_Driver_Mailgun extends \Email_Driver
 		}
 
 		// And send the message out
-		$mg->messages()->send($config_mailgun['domain'], $post_data);
+		$mg->messages()->send($this->config['mailgun']['domain'], $post_data);
 
 		return true;
 	}

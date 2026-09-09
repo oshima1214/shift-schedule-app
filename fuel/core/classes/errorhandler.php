@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -29,7 +29,7 @@ class PhpErrorException extends \ErrorException
 		// handle the error based on the config and the environment we're in
 		if (static::$count <= \Config::get('errors.throttle', 10))
 		{
-			if (strpos(\Fuel::$env, \Fuel::PRODUCTION) !== 0 and ($this->code & error_reporting()) == $this->code)
+			if (\Fuel::$env != \Fuel::PRODUCTION and ($this->code & error_reporting()) == $this->code)
 			{
 				static::$count++;
 				\Errorhandler::exception_handler($this);
@@ -39,7 +39,7 @@ class PhpErrorException extends \ErrorException
 				logger(static::$loglevel, $this->code.' - '.$this->message.' in '.$this->file.' on line '.$this->line);
 			}
 		}
-		elseif (strpos(\Fuel::$env, \Fuel::PRODUCTION) !== 0
+		elseif (\Fuel::$env != \Fuel::PRODUCTION
 				and static::$count == (\Config::get('errors.throttle', 10) + 1)
 				and ($this->severity & error_reporting()) == $this->severity)
 		{
@@ -69,6 +69,7 @@ class Errorhandler
 		E_USER_ERROR        => 'User Error',
 		E_USER_WARNING      => 'User Warning',
 		E_USER_NOTICE       => 'User Notice',
+		E_STRICT            => 'Runtime Notice',
 		E_RECOVERABLE_ERROR => 'Runtime Recoverable error',
 		E_DEPRECATED        => 'Runtime Deprecated code usage',
 		E_USER_DEPRECATED   => 'User Deprecated code usage',
@@ -77,17 +78,6 @@ class Errorhandler
 	public static $fatal_levels = array(E_PARSE, E_ERROR, E_USER_ERROR, E_COMPILE_ERROR);
 
 	public static $non_fatal_cache = array();
-
-	/**
-	 * class init on load
-	 */
-	public static function _init()
-	{
-		if (PHP_VERSION_ID < 80400)
-		{
-			static::$levels[E_STRICT] = 'Runtime Notice';
-		}
-	}
 
 	/**
 	 * Native PHP shutdown handler
@@ -105,7 +95,7 @@ class Errorhandler
 			$error = new \ErrorException($last_error['message'], $last_error['type'], 0, $last_error['file'], $last_error['line']);
 			logger(static::$loglevel, $severity.' - '.$last_error['message'].' in '.$last_error['file'].' on line '.$last_error['line'], array('exception' => $error));
 
-			if (strpos(\Fuel::$env, \Fuel::PRODUCTION) !== 0)
+			if (\Fuel::$env != \Fuel::PRODUCTION)
 			{
 				static::show_php_error($error);
 			}
@@ -134,12 +124,10 @@ class Errorhandler
 				return $e->handle();
 			}
 
-			$severity = method_exists($e, 'getSeverity') ? ($e->getSeverity() == 0 ? $e->getCode() : $e->getSeverity()) : $e->getCode();
-			$severity = ( ! isset(static::$levels[$severity])) ? $severity : static::$levels[$severity];
-
+			$severity = ( ! isset(static::$levels[$e->getCode()])) ? $e->getCode() : static::$levels[$e->getCode()];
 			logger(static::$loglevel, $severity.' - '.$e->getMessage().' in '.$e->getFile().' on line '.$e->getLine(), array('exception' => $e));
 
-			if (strpos(\Fuel::$env, \Fuel::PRODUCTION) !== 0)
+			if (\Fuel::$env != \Fuel::PRODUCTION)
 			{
 				static::show_php_error($e);
 			}
@@ -200,26 +188,18 @@ class Errorhandler
 		$trace = array_merge(array('file' => '(unknown)', 'line' => '(unknown)'), \Arr::get(debug_backtrace(), 1));
 		logger(\Fuel::L_DEBUG, 'Notice - '.$msg.' in '.$trace['file'].' on line '.$trace['line']);
 
-		if (\Fuel::$is_test or ( ! $always_show and (strpos(\Fuel::$env, \Fuel::PRODUCTION) === 0)))
+		if (\Fuel::$is_test or ( ! $always_show and (\Fuel::$env == \Fuel::PRODUCTION or \Config::get('errors.notices', true) === false)))
 		{
 			return;
 		}
 
-		if (\Config::get('errors.notices', true))
-		{
-			$data['message']	= $msg;
-			$data['type']		= 'Notice';
-			$data['filepath']	= \Fuel::clean_path($trace['file']);
-			$data['line']		= $trace['line'];
-			$data['function']	= $trace['function'];
+		$data['message']	= $msg;
+		$data['type']		= 'Notice';
+		$data['filepath']	= \Fuel::clean_path($trace['file']);
+		$data['line']		= $trace['line'];
+		$data['function']	= $trace['function'];
 
-			echo \View::forge('errors'.DS.'php_short', $data, false);
-		}
-		else
-		{
-			$e = new PHPErrorException($msg, 0, E_USER_NOTICE, $trace['file'], $trace['line']);
-			$e->recover();
-		}
+		echo \View::forge('errors'.DS.'php_short', $data, false);
 	}
 
 	/**
@@ -231,8 +211,7 @@ class Errorhandler
 	 */
 	protected static function show_php_error($e)
 	{
-		$severity = method_exists($e, 'getSeverity') ? ($e->getSeverity() == 0 ? $e->getCode() : $e->getSeverity()) : $e->getCode();
-		$fatal = (bool) ( ! in_array($severity, \Config::get('errors.continue_on', array())));
+		$fatal = (bool) ( ! in_array($e->getCode(), \Config::get('errors.continue_on', array())));
 		$data = static::prepare_exception($e, $fatal);
 
 		if ($fatal)
@@ -322,7 +301,7 @@ class Errorhandler
 	{
 		$data = array();
 		$data['type']		= get_class($e);
-		$data['severity']	= method_exists($e, 'getSeverity') ? ($e->getSeverity() == 0 ? $e->getCode() : $e->getSeverity()) : $e->getCode();
+		$data['severity']	= $e->getCode();
 		$data['message']	= $e->getMessage();
 		$data['filepath']	= $e->getFile();
 		$data['error_line']	= $e->getLine();
@@ -334,8 +313,7 @@ class Errorhandler
 			$data['severity'] .= ' ('.$e->getDbCode().')';
 		}
 
-		$severity = method_exists($e, 'getSeverity') ? ($e->getSeverity() == 0 ? $e->getCode() : $e->getSeverity()) : $e->getCode();
-		$data['severity'] = ( ! isset(static::$levels[$severity])) ? $severity : static::$levels[$severity];
+		$data['severity'] = ( ! isset(static::$levels[$data['severity']])) ? $data['severity'] : static::$levels[$data['severity']];
 
 		// support for additional SoapFault info
 		if ($e instanceof \SoapFault)

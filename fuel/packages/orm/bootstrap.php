@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -28,7 +28,6 @@
 
 	// Observers
 	'Orm\\Observer'            => __DIR__.'/classes/observer.php',
-	'Orm\\Observer_Audit'      => __DIR__.'/classes/observer/audit.php',
 	'Orm\\Observer_CreatedAt'  => __DIR__.'/classes/observer/createdat.php',
 	'Orm\\Observer_Typing'     => __DIR__.'/classes/observer/typing.php',
 	'Orm\\Observer_UpdatedAt'  => __DIR__.'/classes/observer/updatedat.php',
@@ -43,3 +42,6 @@
 	'Orm\\ValidationFailed'    => __DIR__.'/classes/observer/validation.php',
 	'Orm\\RelationNotSoft'     => __DIR__.'/classes/model/soft.php',
 ));
+
+// Ensure the orm's config is loaded for Temporal
+\Config::load('orm', true);

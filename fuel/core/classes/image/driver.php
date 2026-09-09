@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -248,28 +248,28 @@ abstract class Image_Driver
 	{
 		if ($height == null or $width == null)
 		{
-			if (is_null($height) and ! is_null($width) and substr($width, -1) == '%')
+			if ($height == null and substr($width, -1) == '%')
 			{
 				$height = $width;
 			}
-			elseif (is_null($width) and ! is_null($height) and substr($height, -1) == '%')
+			elseif (substr($height, -1) == '%' and $width == null)
 			{
 				$width = $height;
 			}
 			else
 			{
 				$sizes = $this->sizes();
-				if (is_null($height) and ! is_null($width))
+				if ($height == null and $width != null)
 				{
 					$height = $width * ($sizes->height / $sizes->width);
 				}
-				elseif (is_null($width) and ! is_null($height))
+				elseif ($height != null and $width == null)
 				{
 					$width = $height * ($sizes->width / $sizes->height);
 				}
 				else
 				{
-					throw new \InvalidArgumentException("Width and height cannot both be null.");
+					throw new \InvalidArgumentException("Width and height cannot be null.");
 				}
 			}
 		}
@@ -356,22 +356,22 @@ abstract class Image_Driver
 		{
 			if (bccomp(bcdiv($sizes->width, $width, 10), bcdiv($sizes->height, $height, 10), 10) < 1)
 			{
-				$this->_resize($width, null, true, false);
+				$this->_resize($width, 0, true, false);
 			}
 			else
 			{
-				$this->_resize(null, $height, true, false);
+				$this->_resize(0, $height, true, false);
 			}
 		}
 		else
 		{
 			if ($sizes->width / $width < $sizes->height / $height)
 			{
-				$this->_resize($width, null, true, false);
+				$this->_resize($width, 0, true, false);
 			}
 			else
 			{
-				$this->_resize(null, $height, true, false);
+				$this->_resize(0, $height, true, false);
 			}
 		}
 
@@ -666,34 +666,16 @@ abstract class Image_Driver
 		{
 			$filename .= "." . $this->image_extension;
 		}
-
-		try
+		// Touch the file
+		if ( ! touch($filename))
 		{
-			// Touch the file
-			// Add @ before touch() due to some stream wrappers (e.g. s3) not supporting touch().
-			@touch($filename);
+			throw new \RuntimeException("Do not have permission to write to \"$filename\"");
 		}
-		catch (\Exception $e)
-		{
-			$this->debug("", "Do not have permission to write to <code>$filename</code>");
-		}
-
 
 		// Set the new permissions
-		if ($permissions != null)
+		if ($permissions != null and ! chmod($filename, $permissions))
 		{
-			// set the correct rights on the file
-			try
-			{
-				if ( ! chmod($filename, $permissions))
-				{
-					throw new \RuntimeException("Could not set permissions on the file.");
-				}
-			}
-			catch (\PhpErrorException $e)
-			{
-				throw new \RuntimeException("Could not set permissions on the file.");
-			}
+			throw new \RuntimeException("Could not set permissions on the file.");
 		}
 
 		$this->debug("", "Saving image as <code>$filename</code>");
@@ -857,17 +839,19 @@ abstract class Image_Driver
 		// Sanitize double negatives
 		$input = str_replace('--', '', $input);
 
+		// Depending on php configuration, float are sometimes converted to strings
+		// using commas instead of points. This notation can create issues since the
+		// conversion from string to float will return an integer.
+		// For instance: "1.2" / 10 == 0.12 but "1,2" / 10 == 0.1...
+		$input = str_replace(',', '.', $input);
+
 		$orig = $input;
 		$sizes = $this->sizes();
 		$size = $x ? $sizes->width : $sizes->height;
 		// Convert percentages to absolutes
 		if (substr($input, -1) == '%')
 		{
-			$input = floor((\Num::floatval(substr($input, 0, -1)) / 100) * $size);
-		}
-		else
-		{
-			$input = \Num::floatval($input);
+			$input = floor((substr($input, 0, -1) / 100) * $size);
 		}
 		// Negatives are based off the bottom right
 		if ($x !== null and $input < 0)

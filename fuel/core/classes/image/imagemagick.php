@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -15,7 +15,7 @@ namespace Fuel\Core;
 class Image_Imagemagick extends \Image_Driver
 {
 	protected $image_temp = null;
-	protected $accepted_extensions = array('png', 'gif', 'jpg', 'jpeg', 'webp');
+	protected $accepted_extensions = array('png', 'gif', 'jpg', 'jpeg');
 	protected $sizes_cache = null;
 	protected $im_path = null;
 

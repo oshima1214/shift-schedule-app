@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -24,6 +24,11 @@ class Database_MySQLi_Connection extends \Database_Connection
 	 * @var  array  Database in use by each connection
 	 */
 	protected static $_current_databases = array();
+
+	/**
+	 * @var  bool  Use SET NAMES to set the character set
+	 */
+	protected static $_set_names;
 
 	/**
 	 * @var  string  Identifier for this connection within the PHP driver
@@ -47,7 +52,7 @@ class Database_MySQLi_Connection extends \Database_Connection
 	protected function __construct($name, array $config)
 	{
 		// construct a custom schema driver
-		$this->_schema = new \Database_MySQL_Schema($name, $this);
+//		$this->_schema = new \Database_Drivername_Schema($name, $this);
 
 		// call the parent consructor
 		parent::__construct($name, $config);
@@ -68,6 +73,13 @@ class Database_MySQLi_Connection extends \Database_Connection
 		if ($this->_connection)
 		{
 			return;
+		}
+
+		if (static::$_set_names === null)
+		{
+			// Determine if we can use mysqli_set_charset(), which is only
+			// available on PHP 5.2.3+ when compiled against MySQL 5.0+
+			static::$_set_names = ! function_exists('mysqli_set_charset');
 		}
 
 		// Extract the connection parameters, adding required variables
@@ -125,12 +137,6 @@ class Database_MySQLi_Connection extends \Database_Connection
 		{
 			// Set the character set
 			$this->set_charset($this->_config['charset']);
-		}
-
-		// any post-connect commands defined?
-		if ( ! empty($this->_config['command']))
-		{
-			$this->_connection->query($this->_config['command']);
 		}
 
 		static::$_current_databases[$this->_connection_id] = $database;
@@ -284,22 +290,15 @@ class Database_MySQLi_Connection extends \Database_Connection
 		}
 
 		// Execute the query
-		try
+		if (($result = $this->_connection->query($sql, $caching ? MYSQLI_STORE_RESULT :MYSQLI_USE_RESULT)) === false)
 		{
-			if (($result = $this->_connection->query($sql, $caching ? MYSQLI_STORE_RESULT :MYSQLI_USE_RESULT)) === false)
+			if (isset($benchmark))
 			{
-				if (isset($benchmark))
-				{
-					// This benchmark is worthless
-					\Profiler::delete($benchmark);
-				}
-
-				throw new \Database_Exception($this->_connection->error.' [ '.$sql.' ]', $this->_connection->errno, null, $this->_connection->errno);
+				// This benchmark is worthless
+				\Profiler::delete($benchmark);
 			}
-		}
-		catch (\mysqli_sql_exception $e)
-		{
-			throw new \Database_Exception('SQLSTATE['.$e->getSqlState().']: '.$e->getMessage().' with query: "'.$sql.'"', $e->getSqlState(), $e, $e->getCode());
+
+			throw new \Database_Exception($this->_connection->error.' [ '.$sql.' ]', $this->_connection->errno, null, $this->_connection->errno);
 		}
 
 		// check for multiresults, we don't support those at the moment

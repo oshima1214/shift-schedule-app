@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -107,12 +107,6 @@ class Format
 			return array();
 		}
 
-		// Add support for Orm model native to_array method
-		if (\Package::loaded('orm') and $data instanceof \Orm\Model) 
-		{
-			return $data->to_array();
-		}
-
 		foreach ($data as $key => $value)
 		{
 			if (is_object($value) or is_array($value))
@@ -201,10 +195,6 @@ class Format
 				}
 				$structure->addChild($key, $bool);
 			}
-			elseif (is_null($value))
-			{
-				$structure->addChild($key, null);
-			}
 			else
 			{
 				// add single node.
@@ -250,7 +240,7 @@ class Format
 			return 	implode($delimiter, array_map(function($item) use($enclosure, $escape, $delimiter, $enclose_numbers) {
 				if ( ! is_numeric($item) or $enclose_numbers)
 				{
-					$item = $enclosure.str_replace($enclosure, $escape.$enclosure, (string) $item).$enclosure;
+					$item = $enclosure.str_replace($enclosure, $escape.$enclosure, $item).$enclosure;
 				}
 				return $item;
 			}, $items));
@@ -533,7 +523,7 @@ class Format
 	 */
 	private function _from_json($string)
 	{
-		return json_decode(trim((string) $string));
+		return json_decode(trim($string));
 	}
 
 	/**
@@ -544,7 +534,7 @@ class Format
 	 */
 	private function _from_serialize($string)
 	{
-		return unserialize(trim((string) $string));
+		return unserialize(trim($string));
 	}
 
 	/**

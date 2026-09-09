@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -90,8 +90,7 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @return bool
 	 */
-	#[\ReturnTypeWillChange]
-	public function seek(/*int */$offset)/*: void*/
+	public function seek($offset)
 	{
 		if ( ! $this->offsetExists($offset))
 		{
@@ -112,19 +111,20 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @return  mixed
 	 */
-	#[\ReturnTypeWillChange]
-	public function current()/*: mixed*/
+	public function current()
 	{
 		if ($this->valid())
 		{
 			$this->_row = $this->_results[$this->_current_row];
 
 			// sanitize the data if needed
-			$this->_sanitizate();
+			if ($this->_sanitization_enabled)
+			{
+				$this->_row = \Security::clean($this->_row, null, 'security.output_filter');
+			}
 		}
 		else
 		{
-			// auto sanitized row in rewind()->next()
 			$this->rewind();
 		}
 
@@ -136,19 +136,11 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @return  mixed
 	 */
-	#[\ReturnTypeWillChange]
-	public function next()/*: void*/
+	public function next()
 	{
 		parent::next();
 
-		$this->_row = null;
-
 		isset($this->_results[$this->_current_row]) and $this->_row = $this->_results[$this->_current_row];
-
-		// sanitize the data if needed
-		$this->_sanitizate();
-
-		return $this->_row;
 	}
 
 	/**************************
@@ -167,8 +159,7 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @return boolean
 	 */
-	#[\ReturnTypeWillChange]
-	public function offsetExists(/*mixed */$offset)/*: bool*/
+	public function offsetExists($offset)
 	{
 		return isset($this->_results[$offset]);
 	}
@@ -182,8 +173,7 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @return  mixed
 	 */
-	#[\ReturnTypeWillChange]
-	public function offsetGet(/*mixed */$offset)/*: mixed*/
+	public function offsetGet($offset)
 	{
 		if ( ! $this->offsetExists($offset))
 		{
@@ -194,7 +184,10 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 		$result = $this->_results[$offset];
 
 		// sanitize the data if needed
-		$this->_sanitizate();
+		if ($this->_sanitization_enabled)
+		{
+			$result = \Security::clean($result, null, 'security.output_filter');
+		}
 
 		return $result;
 	}
@@ -208,8 +201,7 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @throws  \FuelException
 	 */
-	#[\ReturnTypeWillChange]
-	final public function offsetSet(/*mixed */$offset, /*mixed */$value)/*: void*/
+	final public function offsetSet($offset, $value)
 	{
 		throw new \FuelException('Database results are read-only');
 	}
@@ -222,8 +214,7 @@ class Database_MySQLi_Cached extends \Database_Result implements \SeekableIterat
 	 *
 	 * @throws  \FuelException
 	 */
-	#[\ReturnTypeWillChange]
-	final public function offsetUnset(/*mixed */$offset)/*: void*/
+	final public function offsetUnset($offset)
 	{
 		throw new \FuelException('Database results are read-only');
 	}

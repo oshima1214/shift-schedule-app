@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -166,10 +166,6 @@ function setup_autoloader()
 		// Generic Schema builder
 		'Fuel\\Core\\Database_Schema'                  => COREPATH.'classes/database/schema.php',
 		// Specific Schema builders
-		'Fuel\\Core\\Database_Dblib_Schema'            => COREPATH.'classes/database/dblib/schema.php',
-		'Fuel\\Core\\Database_MySQL_Schema'            => COREPATH.'classes/database/mysql/schema.php',
-		'Fuel\\Core\\Database_SQLite_Schema'           => COREPATH.'classes/database/sqlite/schema.php',
-		'Fuel\\Core\\Database_Sqlsrv_Schema'           => COREPATH.'classes/database/sqlsrv/schema.php',
 		// Generic Query builder
 		'Fuel\\Core\\Database_Query'                   => COREPATH.'classes/database/query.php',
 		'Fuel\\Core\\Database_Query_Builder'           => COREPATH.'classes/database/query/builder.php',
@@ -182,8 +178,6 @@ function setup_autoloader()
 		// Specific Query builders
 		'Fuel\\Core\\Database_SQLite_Builder_Delete'   => COREPATH.'classes/database/sqlite/builder/delete.php',
 		'Fuel\\Core\\Database_SQLite_Builder_Update'   => COREPATH.'classes/database/sqlite/builder/update.php',
-		'Fuel\\Core\\Database_Sqlsrv_Builder_Delete'   => COREPATH.'classes/database/sqlsrv/builder/delete.php',
-		'Fuel\\Core\\Database_Sqlsrv_Builder_Select'   => COREPATH.'classes/database/sqlsrv/builder/select.php',
 		// Generic PDO driver
 		'Fuel\\Core\\Database_Pdo_Connection'          => COREPATH.'classes/database/pdo/connection.php',
 		'Fuel\\Core\\Database_Pdo_Result'              => COREPATH.'classes/database/pdo/result.php',
@@ -280,6 +274,8 @@ function setup_autoloader()
 
 		'Fuel\\Core\\Mongo_Db'                         => COREPATH.'classes/mongo/db.php',
 		'Fuel\\Core\\Mongo_DbException'                => COREPATH.'classes/mongo/db.php',
+
+		'Fuel\\Core\\Output'                           => COREPATH.'classes/output.php',
 
 		'Fuel\\Core\\Package'                          => COREPATH.'classes/package.php',
 		'Fuel\\Core\\PackageNotFoundException'         => COREPATH.'classes/package.php',

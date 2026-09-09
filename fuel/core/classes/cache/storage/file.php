@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -104,9 +104,7 @@ class Cache_Storage_File extends \Cache_Storage_Driver
 	 */
 	public function delete()
 	{
-		$file = static::$path.$this->identifier_to_path($this->identifier).'.cache';
-		clearstatcache(true, $file);
-		if(is_file($file))
+		if (is_file($file = static::$path.$this->identifier_to_path($this->identifier).'.cache'))
 		{
 			unlink($file);
 			$this->reset();
@@ -271,12 +269,6 @@ class Cache_Storage_File extends \Cache_Storage_Driver
 						}
 						catch (\PHPErrorException $e)
 						{
-							// if we get something else then a chmod error, bail out
-							if (substr($e->getMessage(), 0, 8) !== 'chmod():')
-							{
-								throw new $e;
-							}
-
 							return false;
 						}
 					}
@@ -313,18 +305,7 @@ class Cache_Storage_File extends \Cache_Storage_Driver
 		fclose($handle);
 
 		// set the correct rights on the file
-		try
-		{
-			chmod($file, \Config::get('file.chmod.files', 0666));
-		}
-		catch (\PhpErrorException $e)
-		{
-			// if we get something else then a chmod error, bail out
-			if (substr($e->getMessage(), 0, 8) !== 'chmod():')
-			{
-				throw new $e;
-			}
-		}
+		chmod($file, \Config::get('file.chmod.files', 0666));
 
 		return true;
 	}

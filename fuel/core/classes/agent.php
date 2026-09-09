@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -334,7 +334,7 @@ class Agent
 	 */
 	public static function languages()
 	{
-		return explode(',', preg_replace('/(;q=[0-9\.]+)/i', '', strtolower(trim(\Input::server('http_accept_language', '')))));
+		return explode(',', preg_replace('/(;q=[0-9\.]+)/i', '', strtolower(trim(\Input::server('http_accept_language')))));
 	}
 
 	// --------------------------------------------------------------------
@@ -346,7 +346,7 @@ class Agent
 	 */
 	public static function charsets()
 	{
-		return explode(',', preg_replace('/(;q=.+)/i', '', strtolower(trim(\Input::server('http_accept_charset', '')))));
+		return explode(',', preg_replace('/(;q=.+)/i', '', strtolower(trim(\Input::server('http_accept_charset')))));
 	}
 
 	// --------------------------------------------------------------------
@@ -446,6 +446,7 @@ class Agent
 			case 'curl':
 				// initialize the proxy request
 				$curl = curl_init();
+				curl_setopt($curl, CURLOPT_BINARYTRANSFER, 1);
 				curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 				curl_setopt($curl, CURLOPT_MAXREDIRS, 5);

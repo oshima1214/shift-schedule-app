@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -60,9 +60,9 @@ class Database_Query_Builder_Select extends \Database_Query_Builder_Where
 	 *
 	 * @param  array  $columns  column list
 	 */
-	public function __construct($columns = null)
+	public function __construct(array $columns = null)
 	{
-		if ( is_array($columns) and  ! empty($columns))
+		if ( ! empty($columns))
 		{
 			// Set the initial columns
 			$this->_select = $columns;

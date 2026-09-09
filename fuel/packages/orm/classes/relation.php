@@ -3,42 +3,17 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
 namespace Orm;
 
-/**
- * FK delete constraint violation Exception
- */
-class DeleteConstraintViolation extends \DomainException {}
-
 abstract class Relation
 {
-	/* ---------------------------------------------------------------------------
-	 * Relation constraint constants
-	 * --------------------------------------------------------------------------- */
-	const CONSTRAINT_RESTRICT = 'delete_restrict';
-	const CONSTRAINT_CASCADE = 'delete_cascade';
-	const CONSTRAINT_SETDEFAULT = 'delete_default';
-
-	/**
-	 * @var  array  list of valid constraints
-	 */
-	protected $valid_constraints = array(
-		self::CONSTRAINT_RESTRICT,
-		self::CONSTRAINT_CASCADE,
-		self::CONSTRAINT_SETDEFAULT,
-	);
-
-	/* ---------------------------------------------------------------------------
-	 * Relation constraint constants
-	 * --------------------------------------------------------------------------- */
-
 	/**
 	 * @var  string  name of the relationship in the model_from
 	 */
@@ -83,11 +58,6 @@ abstract class Relation
 	 * @var  bool  whether deleting this one's model_from should cascade to delete model_to
 	 */
 	protected $cascade_delete = false;
-
-	/**
-	 * @var  bool  whether an FK check should be done before cascading (= ON DELETE RESTRICT)
-	 */
-	protected $cascade_check = false;
 
 	/**
 	 * Configures the relationship
@@ -159,10 +129,11 @@ abstract class Relation
 	 * Takes the current relations and attempts to delete them when cascading is allowed or forced
 	 *
 	 * @param  Model        $model_from      instance of model_from
-	 * @param  bool         $parent_deleted  whether the model_from has been deleted already
+	 * @param  array|Model  $model_to        single or multiple model instances to delete
+	 * @param  bool         $parent_deleted  whether the model_from has been saved already
 	 * @param  null|bool    $cascade         either uses default setting (null) or forces when true or prevents when false
 	 */
-	abstract public function delete($model_from, $parent_deleted, $cascade);
+	abstract public function delete($model_from, $model_to, $parent_deleted, $cascade);
 
 	/**
 	 * Allow outside access to protected properties
@@ -189,15 +160,5 @@ abstract class Relation
 	public function is_singular()
 	{
 		return $this->singular;
-	}
-
-	/**
-	 * Returns the model class this relation points to
-	 *
-	 * @return bool
-	 */
-	public function model()
-	{
-		return $this->model_to;
 	}
 }

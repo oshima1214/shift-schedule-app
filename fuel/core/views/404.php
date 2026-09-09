@@ -42,7 +42,7 @@
 			<h1>404 - Page not found!</h1>
 		</div>
 		<div id="body">
-			<p><?=(\Str::starts_with(\Fuel::$env, \Fuel::PRODUCTION) or empty($message)) ? 'You can see this page because the URL you are accessing cannot be found.' : $message?></p>
+			<p>You can see this page because the URL you are accessing cannot be found.</p>
 		</div>
 	</div>
 </body>

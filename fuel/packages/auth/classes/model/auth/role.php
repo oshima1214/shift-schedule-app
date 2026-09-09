@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -36,6 +36,7 @@ class Auth_Role extends \Orm\Model
 		'id'              => array(),
 		'name'            => array(
 			'label'       => 'auth_model_role.name',
+			'default'     => 0,
 			'null'        => false,
 			'validation'  => array('required', 'max_length' => array(255)),
 		),
@@ -43,6 +44,7 @@ class Auth_Role extends \Orm\Model
 			'label'       => 'auth_model_role.filter',
 			'data_type'   => 'enum',
 			'options'     => array('', 'A', 'D', 'R'),
+			'default'     => 0,
 			'null'        => false,
 			'form'        => array('type' => 'select'),
 			'validation'  => array(),
@@ -96,7 +98,7 @@ class Auth_Role extends \Orm\Model
 			'model_to' => 'Model\\Auth_Rolepermission',
 			'key_from' => 'id',
 			'key_to'   => 'role_id',
-			'constraint' => \Orm\Relation::CONSTRAINT_CASCADE,
+			'cascade_delete' => false,
 		),
 	);
 

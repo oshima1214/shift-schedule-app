@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -25,9 +25,7 @@
 	'Parser\\View_Smarty'           => __DIR__.'/classes/view/smarty.php',
 	'Parser\\View_Phptal'           => __DIR__.'/classes/view/phptal.php',
 	'Parser\\View_Lex'              => __DIR__.'/classes/view/lex.php',
-	'Parser\\View_Plates'           => __DIR__.'/classes/view/plates.php',
 
-	'Parser\\Twig_Fuel_Extension_Wrapper'   => __DIR__.'/classes/twig/fuel/extension/wrapper.php',
-	'Parser\\Twig_Fuel_Extension'   		=> __DIR__.'/classes/twig/fuel/extension.php',
-	'Parser\\Smarty_Fuel_Extension' 		=> __DIR__.'/classes/smarty/fuel/extension.php',
+	'Parser\\Twig_Fuel_Extension'   => __DIR__.'/classes/twig/fuel/extension.php',
+	'Parser\\Smarty_Fuel_Extension' => __DIR__.'/classes/smarty/fuel/extension.php',
 ));
