@@ -5,30 +5,182 @@ namespace App\Model;
 class Employee
 {
 	/**
-	 * email + 平文パスワードで認証し、成功したら従業員情報を返す
+	 * email + 平文パスワードで認証する。
+	 *
+	 * 総当たり攻撃対策として、連続で失敗した回数を数え、
+	 * 上限に達したアカウントは一定時間ログインを受け付けない。
 	 *
 	 * @param string $email
 	 * @param string $password
-	 * @return array|null
+	 * @return array  array('status' => 'ok'|'invalid'|'locked', 'employee' => array|null, 'lock_seconds' => int)
 	 */
 	public static function authenticate($email, $password)
 	{
-		$row = \DB::select('id', 'department_id', 'name', 'email', 'password_hash', 'employment_type', 'role')
+		// ロックの判定は日時の比較になるため、他の日時列（deleted_atなど）と
+		// 同じDB側の時計で揃える。そのため現在時刻もDBから受け取る。
+		$row = \DB::select(
+				'id', 'department_id', 'name', 'email', 'password_hash',
+				'employment_type', 'role', 'failed_login_count', 'locked_until',
+				array(\DB::expr('NOW()'), 'db_now')
+			)
 			->from('employees')
 			->where('email', $email)
 			->where('deleted_at', null)
 			->execute()
 			->current();
 
-		// 該当なしのとき current() は null を返すため、真偽値で判定する
-		if ( ! $row or ! password_verify($password, $row['password_hash']))
+		// 該当なしのとき current() は null を返すため、真偽値で判定する。
+		// 存在しないメールアドレスかどうかを画面に出さないよう、扱いは失敗と同じにする。
+		if ( ! $row)
 		{
-			return null;
+			return static::auth_result('invalid');
 		}
 
-		unset($row['password_hash']);
+		$lock_seconds = static::lock_seconds($row);
 
-		return $row;
+		if ($lock_seconds > 0)
+		{
+			return static::auth_result('locked', null, $lock_seconds);
+		}
+
+		if ( ! password_verify($password, $row['password_hash']))
+		{
+			// この失敗でロックに達したときは、その旨を伝えて再試行をやめさせる
+			$lock_seconds = static::register_login_failure($row);
+
+			return $lock_seconds > 0
+				? static::auth_result('locked', null, $lock_seconds)
+				: static::auth_result('invalid');
+		}
+
+		static::clear_login_failure((int) $row['id']);
+
+		unset($row['password_hash'], $row['failed_login_count'], $row['locked_until'], $row['db_now']);
+
+		return static::auth_result('ok', $row);
+	}
+
+	/**
+	 * 本人によるパスワード変更のために、現在のパスワードを照合する
+	 *
+	 * @param int    $id
+	 * @param string $password
+	 * @return bool
+	 */
+	public static function verify_password($id, $password)
+	{
+		$row = \DB::select('password_hash')
+			->from('employees')
+			->where('id', $id)
+			->where('deleted_at', null)
+			->execute()
+			->current();
+
+		return $row ? password_verify($password, $row['password_hash']) : false;
+	}
+
+	/**
+	 * パスワードだけを更新する。あわせてログイン失敗の記録も消す
+	 * （パスワードを変えた本人が、ロックの残り時間を待たされないようにする）。
+	 *
+	 * @param int    $id
+	 * @param string $password
+	 * @return int  更新件数
+	 */
+	public static function update_password($id, $password)
+	{
+		return \DB::update('employees')
+			->set(array(
+				'password_hash'      => password_hash($password, PASSWORD_DEFAULT),
+				'failed_login_count' => 0,
+				'locked_until'       => null,
+			))
+			->where('id', $id)
+			->execute();
+	}
+
+	/**
+	 * ロック解除までの残り秒数。ロックしていない・期限切れなら0。
+	 * 期限切れのロックはロックとして扱わない（次の失敗で数え直す）。
+	 *
+	 * @param array $row  locked_at と db_now を含む行
+	 * @return int
+	 */
+	private static function lock_seconds(array $row)
+	{
+		if (empty($row['locked_until']))
+		{
+			return 0;
+		}
+
+		// どちらもDB側の時計の文字列なので、同じ扱いで比較できる
+		$remain = strtotime($row['locked_until']) - strtotime($row['db_now']);
+
+		return $remain > 0 ? $remain : 0;
+	}
+
+	/**
+	 * ログイン失敗を1回記録する。上限に達したらロックする。
+	 *
+	 * @param array $row
+	 * @return int  ロックした場合は解除までの秒数、しなければ0
+	 */
+	private static function register_login_failure(array $row)
+	{
+		$max     = (int) \Config::get('shift.login.max_attempts');
+		$minutes = (int) \Config::get('shift.login.lockout_minutes');
+
+		// 期限切れのロックが残っている場合は、そこから1回目として数え直す
+		$expired = ! empty($row['locked_until']);
+		$count   = $expired ? 1 : ((int) $row['failed_login_count'] + 1);
+
+		$values  = array('failed_login_count' => $count, 'locked_until' => null);
+		$seconds = 0;
+
+		if ($count >= $max)
+		{
+			// 日時はDB側の時計で作る（他の日時列と揃える）。
+			// 埋め込むのは設定値をintにキャストした分数のみで、入力値は含まない。
+			$values['locked_until'] = \DB::expr('DATE_ADD(NOW(), INTERVAL '.$minutes.' MINUTE)');
+			// ロック解除後はまた0回目から数える
+			$values['failed_login_count'] = 0;
+
+			$seconds = $minutes * 60;
+		}
+
+		\DB::update('employees')->set($values)->where('id', $row['id'])->execute();
+
+		return $seconds;
+	}
+
+	/**
+	 * ログイン成功時に失敗の記録を消す
+	 *
+	 * @param int $id
+	 */
+	private static function clear_login_failure($id)
+	{
+		\DB::update('employees')
+			->set(array('failed_login_count' => 0, 'locked_until' => null))
+			->where('id', $id)
+			->execute();
+	}
+
+	/**
+	 * authenticate() の戻り値を組み立てる
+	 *
+	 * @param string     $status
+	 * @param array|null $employee
+	 * @param int        $lock_seconds  ロック解除までの残り秒数
+	 * @return array
+	 */
+	private static function auth_result($status, $employee = null, $lock_seconds = 0)
+	{
+		return array(
+			'status'       => $status,
+			'employee'     => $employee,
+			'lock_seconds' => (int) $lock_seconds,
+		);
 	}
 
 	/**
@@ -148,6 +300,10 @@ class Employee
 		if ( ! empty($data['password']))
 		{
 			$values['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+
+			// 管理者がパスワードを再設定したら、ログイン失敗によるロックも解除する
+			$values['failed_login_count'] = 0;
+			$values['locked_until']       = null;
 		}
 
 		return \DB::update('employees')->set($values)->where('id', $id)->execute();

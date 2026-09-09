@@ -50,6 +50,8 @@ class Controller_Request extends Controller_Base
 				'end_time'        => substr($request['end_time'], 0, 5),
 				'status'          => $request['status'],
 				'status_label'    => \Arr::get($statuses, $request['status'], $request['status']),
+				// 却下のときだけ理由が入る
+				'reject_reason'   => $request['status'] === 'rejected' ? $request['reject_reason'] : null,
 			);
 		}
 

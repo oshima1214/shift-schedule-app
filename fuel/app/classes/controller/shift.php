@@ -52,6 +52,8 @@ class Controller_Shift extends Controller_Base
 				'start_time' => $request ? substr($request['start_time'], 0, 5) : null,
 				'end_time'   => $request ? substr($request['end_time'], 0, 5) : null,
 				'status'     => $request ? $request['status'] : null,
+				// 却下された理由を本人にも見せる
+				'reject_reason' => ($request and $request['status'] === 'rejected') ? $request['reject_reason'] : null,
 			);
 		}
 

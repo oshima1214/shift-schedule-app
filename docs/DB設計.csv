@@ -11,7 +11,9 @@ employees,-,-,-,-,従業員
 ,name,varchar(100),-,-,氏名
 ,email,varchar(255),-,-,ログインID兼用、UNIQUE制約
 ,password_hash,varchar(255),-,-,ハッシュ化したパスワード、平文では保存しない
-,employment_type,char(10),-,part_time,雇用形態　part_time:アルバイト　part:パート
+,failed_login_count,int(11),-,0,連続したログイン失敗回数、ログイン成功またはロック時に0へ戻す
+,locked_until,datetime,yes,-,ログイン試行の制限による解除日時、nullならロックなし
+,employment_type,char(10),-,part_time,雇用形態　full_time:正社員　part_time:アルバイト　part:パート
 ,role,char(10),-,employee,権限　employee:従業員　admin:管理者
 ,created_at,timestamp,-,CURRENT_TIMESTAMP,作成日時
 ,updated_at,timestamp,-,CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,最終更新日時
@@ -23,6 +25,7 @@ shift_requests,-,-,-,-,シフト希望
 ,start_time,time,-,-,開始時刻
 ,end_time,time,-,-,終了時刻
 ,status,char(10),-,requested,状態　requested:希望中　approved:確定　rejected:却下
+,reject_reason,varchar(255),yes,-,却下理由、却下以外の状態ではnull
 ,created_at,timestamp,-,CURRENT_TIMESTAMP,作成日時
 ,updated_at,timestamp,-,CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,最終更新日時
 ,deleted_at,timestamp,yes,-,削除日時、nullでなければ画面に表示されない

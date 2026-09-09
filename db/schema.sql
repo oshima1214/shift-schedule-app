@@ -20,7 +20,9 @@ CREATE TABLE `employees` (
   `name`            varchar(100) NOT NULL,                        -- 氏名
   `email`           varchar(255) NOT NULL,                        -- ログインID兼用、UNIQUE制約
   `password_hash`   varchar(255) NOT NULL,                        -- ハッシュ化したパスワード、平文では保存しない
-  `employment_type` char(10) NOT NULL DEFAULT 'part_time',        -- 雇用形態 part_time:アルバイト part:パート
+  `failed_login_count` int NOT NULL DEFAULT 0,                    -- 連続したログイン失敗回数、成功またはロック時に0へ戻す
+  `locked_until`    datetime DEFAULT NULL,                        -- ログインを受け付けない期限、nullならロックなし
+  `employment_type` char(10) NOT NULL DEFAULT 'part_time',        -- 雇用形態 full_time:正社員 part_time:アルバイト part:パート
   `role`            char(10) NOT NULL DEFAULT 'employee',         -- 権限 employee:従業員 admin:管理者
   `created_at`      timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`      timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -41,6 +43,7 @@ CREATE TABLE `shift_requests` (
   `start_time`  time NOT NULL,                                    -- 開始時刻
   `end_time`    time NOT NULL,                                    -- 終了時刻
   `status`      char(10) NOT NULL DEFAULT 'requested',            -- 状態 requested:希望中 approved:確定 rejected:却下
+  `reject_reason` varchar(255) DEFAULT NULL,                      -- 却下理由、却下以外の状態ではnull
   `created_at`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `deleted_at`  timestamp NULL DEFAULT NULL,
