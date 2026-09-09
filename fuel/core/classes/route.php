@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -52,7 +52,7 @@ class Route
 	/**
 	 * @var  string  route module
 	 */
-	public $module = '';
+	public $module = null;
 
 	/**
 	 * @var  string  route directory
@@ -115,7 +115,6 @@ class Route
 			':everything',
 			':alnum',
 			':num',
-			':decimal',
 			':alpha',
 			':segment',
 		), array(
@@ -123,7 +122,6 @@ class Route
 			'.*',
 			'[[:alnum:]]+',
 			'[[:digit:]]+',
-			'[+-]?((\d+[\.,]?\d*)|([\.,]\d+))',
 			'[[:alpha:]]+',
 			'[^/]*',
 		), $this->path);
@@ -188,7 +186,7 @@ class Route
 			if ($uri != '')
 			{
 				// strip the extension if needed and there is something to strip
-				if (\Input::extension() and $this->strip_extension and strrchr($uri, '.') == $ext = '.'.\Input::extension())
+				if ($this->strip_extension and strrchr($uri, '.') == $ext = '.'.\Input::extension())
 				{
 					if ($this->strip_extension === true or (is_array($this->strip_extension) and in_array($ext, $this->strip_extension)))
 					{

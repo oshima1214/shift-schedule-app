@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -50,7 +50,6 @@ class Observer_Typing
 		'boolean' => 'bool',
 		'time_unix' => 'time',
 		'time_mysql' => 'time',
-		'timestamp' => 'time',
 		'datetime' => 'time',
 		'date' => 'time',
 	);
@@ -178,22 +177,15 @@ class Observer_Typing
 			{
 				if (array_key_exists('null', $settings) and $settings['null'] === false)
 				{
-					// if a default is defined, use that instead
+					// if a default is defined, return that instead
 					if (array_key_exists('default', $settings))
 					{
-						$value = $settings['default'];
+						return $settings['default'];
 					}
-					else
-					{
-						throw new InvalidContentType('The property "'.$column.'" cannot be NULL.');
-					}
+
+					throw new InvalidContentType('The property "'.$column.'" cannot be NULL.');
 				}
 			}
-		}
-
-		 // still null? then let the DB deal with it
-		if ($value === null)
-		{
 			return $value;
 		}
 
@@ -331,12 +323,12 @@ class Observer_Typing
 		// was a specific float format specified?
 		if (isset($settings['db_decimals']))
 		{
-			return sprintf('%.'.$settings['db_decimals'].'F', round((float) $var, $settings['db_decimals']));
+			return sprintf('%.'.$settings['db_decimals'].'F', (float) $var);
 		}
 		if (isset($settings['data_type']) and strpos($settings['data_type'], 'decimal:') === 0)
 		{
 			$decimal = explode(':', $settings['data_type']);
-			return sprintf('%.'.$decimal[1].'F', round((float) $var, $decimal[1]));
+			return sprintf('%.'.$decimal[1].'F', (float) $var);
 		}
 
 		return $var;
@@ -406,10 +398,10 @@ class Observer_Typing
 		// do we need to do locale aware conversion?
 		if (static::$use_locale)
 		{
-			return sprintf("%.".$dec."f", round(static::type_float_after($var), $dec));
+			return sprintf("%.".$dec."f", static::type_float_after($var));
 		}
 
-		return sprintf("%.".$dec."F", round(static::type_float_after($var), $dec));
+		return sprintf("%.".$dec."F", static::type_float_after($var));
 	}
 
 	/**
@@ -742,12 +734,6 @@ class Observer_Typing
 		else
 		{
 			$var = \Date::forge($var);
-		}
-
-		// a format defined for the date, in the form settings?
-		if (isset($settings['form']['format']))
-		{
-			$var->set_pattern($settings['form']['format']);
 		}
 
 		return $var;

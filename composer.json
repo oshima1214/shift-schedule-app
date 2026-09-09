@@ -7,12 +7,12 @@
     "require": {
         "php": ">=5.4",
         "composer/installers": "^1.0 || ^2.3",
-        "fuel/core": "dev-1.9/develop",
-        "fuel/auth": "dev-1.9/develop",
-        "fuel/email": "dev-1.9/develop",
-        "fuel/oil": "dev-1.9/develop",
-        "fuel/orm": "dev-1.9/develop",
-        "fuel/parser": "dev-1.9/develop",
+        "fuel/core": "1.8.*",
+        "fuel/auth": "1.8.*",
+        "fuel/email": "1.8.*",
+        "fuel/oil": "1.8.*",
+        "fuel/orm": "1.8.*",
+        "fuel/parser": "1.8.*",
         "fuelphp/upload": "2.0.6"
     },
     "require-dev": {

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -196,9 +196,9 @@ class Redis_Db
     {
         $args = array('PSUBSCRIBE', $pattern);
 
-        $command = sprintf('*%d%s%s%s', 2, CRLF, implode(CRLF, array_map(function($arg) {
-		return sprintf('$%d%s%s', strlen($arg), CRLF, $arg);
-	}, $args)), CRLF);
+        $command = sprintf('*%d%s%s%s', 2, CRLF, implode(array_map(function($arg) {
+            return sprintf('$%d%s%s', strlen($arg), CRLF, $arg);
+        }, $args), CRLF), CRLF);
 
         for ($written = 0; $written < strlen($command); $written += $fwrite)
         {
@@ -261,12 +261,12 @@ class Redis_Db
 		{
 			// error reply
 			case '-':
-				throw new \RedisException(substr($reply, 1));
+				throw new \RedisException(trim(substr($reply, 1)));
 				break;
 
 			// inline reply
 			case '+':
-				$response = substr($reply, 1);
+				$response = substr(trim($reply), 1);
 				if ($response === 'OK')
 				{
 					$response = true;
@@ -321,7 +321,7 @@ class Redis_Db
 
 			// integer reply
 			case ':':
-				$response = intval(substr($reply, 1));
+				$response = intval(substr(trim($reply), 1));
 				break;
 
 			default:

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -125,17 +125,10 @@ class View
 			$data = get_object_vars($data);
 		}
 
-		// if we have any data
-		if ( ! is_null($data))
+		// else it better by and array !
+		elseif ($data and ! is_array($data))
 		{
-			// it better by and array !
-			if( ! is_array($data))
-			{
-				throw new \InvalidArgumentException('The data parameter only accepts objects and arrays.');
-			}
-
-			// Add the values to the current data
-			$this->data = $data;
+			throw new \InvalidArgumentException('The data parameter only accepts objects and arrays.');
 		}
 
 		$this->auto_filter = is_null($filter) ? \Config::get('security.auto_filter_output', true) : $filter;
@@ -145,6 +138,12 @@ class View
 		if ($file !== null)
 		{
 			$this->set_filename($file);
+		}
+
+		if ($data !== null)
+		{
+			// Add the values to the current data
+			$this->data = $data;
 		}
 
 		// store the current request search paths to deal with out-of-context rendering
@@ -227,7 +226,7 @@ class View
 		{
 			return $this->render();
 		}
-		catch (\Throwable $e)
+		catch (\Exception $e)
 		{
 			\Errorhandler::exception_handler($e);
 
@@ -258,7 +257,7 @@ class View
 				// Load the view within the current scope
 				include $__file_name;
 			}
-			catch (\Throwable $e)
+			catch (\Exception $e)
 			{
 				// Delete the output buffer
 				ob_end_clean();
@@ -360,7 +359,7 @@ class View
 	 *
 	 *     View::set_global($name, $value);
 	 *
-	 * @param   string|array  $key     variable name or an array of variables
+	 * @param   string  $key     variable name or an array of variables
 	 * @param   mixed   $value   value
 	 * @param   bool    $filter  whether to filter the data or not
 	 * @return  void
@@ -454,24 +453,20 @@ class View
 			// strip the extension from it
 			$pathinfo = pathinfo($file);
 
-			// make sure it has an extension
-			if (array_key_exists('extension', $pathinfo))
+			// add the result to the search list
+			if ($reverse)
 			{
-				// add the result to the search list
-				if ($reverse)
-				{
-					array_unshift($searches, array(
-						'file' => substr($file, 0, strlen($pathinfo['extension'])*-1 - 1),
-						 'extension' => $pathinfo['extension'],
-					));
-				}
-				else
-				{
-					$searches[] = array(
-						'file' => substr($file, 0, strlen($pathinfo['extension'])*-1 - 1),
-						 'extension' => $pathinfo['extension'],
-					);
-				}
+				array_unshift($searches, array(
+					'file' => substr($file, 0, strlen($pathinfo['extension'])*-1 - 1),
+					 'extension' => $pathinfo['extension'],
+				));
+			}
+			else
+			{
+				$searches[] = array(
+					'file' => substr($file, 0, strlen($pathinfo['extension'])*-1 - 1),
+					 'extension' => $pathinfo['extension'],
+				);
 			}
 		}
 
@@ -565,7 +560,7 @@ class View
 	 *     // Create the values $food and $beverage in the view
 	 *     $view->set(array('food' => 'bread', 'beverage' => 'water'));
 	 *
-	 * @param   string|array   $key     variable name or an array of variables
+	 * @param   string   $key     variable name or an array of variables
 	 * @param   mixed    $value   value
 	 * @param   bool     $filter  whether to filter the data or not
 	 * @return  $this

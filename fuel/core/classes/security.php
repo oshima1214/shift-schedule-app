@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -145,7 +145,7 @@ class Security
 			foreach ($filters as $filter)
 			{
 				// is this filter a callable local function?
-				if (is_string($filter) and is_callable(static::class.'::'.$filter))
+				if (is_string($filter) and is_callable('static::'.$filter))
 				{
 					$var = static::$filter($var);
 				}
@@ -169,25 +169,19 @@ class Security
 
 	public static function xss_clean($value, array $options = array(), $spec = '')
 	{
-		// load our cleaner if needed
-		if ( ! function_exists('htmLawed'))
+		if ( ! is_array($value))
 		{
-			import('htmlawed/htmlawed', 'vendor');
-		}
-
-		// clean all elements of the array individually
-		if ( is_array($value))
-		{
-			foreach ($value as $k => $v)
+			if ( ! function_exists('htmLawed'))
 			{
-				$value[$k] = static::xss_clean($v, $options, $spec);
+				import('htmlawed/htmlawed', 'vendor');
 			}
+
+			return htmLawed($value, array_merge(array('safe' => 1, 'balanced' => 0), $options), $spec);
 		}
 
-		// only strings van be cleaned
-		elseif (is_string($value))
+		foreach ($value as $k => $v)
 		{
-			$value = htmLawed($value, array_merge(array('safe' => 1, 'balanced' => 0), $options), $spec);
+			$value[$k] = static::xss_clean($v, $options, $spec);
 		}
 
 		return $value;
@@ -197,8 +191,7 @@ class Security
 	{
 		if ( ! is_array($value))
 		{
-			$value = preg_replace('/\x00|<[^>]*>?/', '', strip_tags($value));
-			$value = str_replace(["'", '"'], ['&#39;', '&#34;'], $value);
+			$value = filter_var($value, FILTER_SANITIZE_STRING);
 		}
 		else
 		{

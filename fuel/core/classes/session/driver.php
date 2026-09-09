@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -71,7 +71,7 @@ abstract class Session_Driver
 	{
 		// init the driver if needed
 		$this->init();
-
+	
 		// change the state to started
 		$this->_change_state('started');
 
@@ -237,11 +237,6 @@ abstract class Session_Driver
 	 */
 	public function set_flash($name, $value)
 	{
-		if (empty($name))
-		{
-			throw new \FuelException("No flash variable name given.");
-		}
-
 		if (strpos($name, '.') !== false)
 		{
 			$keys = explode('.', $name, 2);
@@ -440,16 +435,6 @@ abstract class Session_Driver
 	// --------------------------------------------------------------------
 
 	/**
-	 * return the current state of this session driver
-	 */
-	public function get_state()
-	{
-		return $this->state;
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
 	 * generic driver initialisation
 	 *
 	 * @return	void
@@ -488,12 +473,6 @@ abstract class Session_Driver
 	 */
 	protected function _change_state($newstate)
 	{
-		// no point changing to the state we're in
-		if ($newstate == $this->state)
-		{
-			return $this;
-		}
-
 		// log this request so we can trace the flow
 		logger(\Fuel::L_DEBUG, sprintf('Session state for "%s" transitioning from "%s" to "%s".', $this->get_config('cookie_name'), $this->state, $newstate), __METHOD__);
 
@@ -546,14 +525,14 @@ abstract class Session_Driver
 			\Event::unregister('fuel-shutdown', array($this, 'close'));
 
 			// delete the session cookie
-			\Cookie::delete($this->config['cookie_name'], $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only'], $this->config['cookie_same_site']);
+			\Cookie::delete($this->config['cookie_name'], $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only']);
 		}
 
 		// closed -> destroyed
 		elseif ($newstate === 'destroyed' and $this->state === 'closed')
 		{
 			// delete the session cookie
-			\Cookie::delete($this->config['cookie_name'], $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only'], $this->config['cookie_same_site']);
+			\Cookie::delete($this->config['cookie_name'], $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only']);
 		}
 
 		// gc, can always be run
@@ -653,11 +632,11 @@ abstract class Session_Driver
 			// write the session cookie
 			if ($this->config['expire_on_close'])
 			{
-				return \Cookie::set($this->config['cookie_name'], $payload, 0, $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only'], $this->config['cookie_same_site']);
+				return \Cookie::set($this->config['cookie_name'], $payload, 0, $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only']);
 			}
 			else
 			{
-				return \Cookie::set($this->config['cookie_name'], $payload, $this->config['expiration_time'], $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only'], $this->config['cookie_same_site']);
+				return \Cookie::set($this->config['cookie_name'], $payload, $this->config['expiration_time'], $this->config['cookie_path'], $this->config['cookie_domain'], null, $this->config['cookie_http_only']);
 			}
 		}
 	}
@@ -776,9 +755,6 @@ abstract class Session_Driver
 	 */
 	protected function _unserialize($input)
 	{
-		// Prevent trigger php8' error with calling unserialize with null parameter
-		$input === null and $input = '';
-
 		$data = @unserialize($input);
 
 		if (is_array($data))
@@ -840,7 +816,6 @@ abstract class Session_Driver
 				case 'post_cookie_name':
 				case 'http_header_name':
 				case 'cookie_domain':
-				case 'cookie_same_site':
 					// make sure it's a string
 					$item = (string) $item;
 				break;

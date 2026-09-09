@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -62,29 +62,29 @@ class Lang
 	public static function load($file, $group = null, $language = null, $overwrite = false, $reload = false)
 	{
 		// get the active language and all fallback languages
-		$_language = is_string($language) ? $language : static::get_lang();
+		$language or $language = static::get_lang();
 		$languages = static::$fallback;
 
 		// make sure we don't have the active language in the fallback array
-		if (in_array($_language, $languages))
+		if (in_array($language, $languages))
 		{
-			unset($languages[array_search($_language, $languages)]);
+			unset($languages[array_search($language, $languages)]);
 		}
 
 		// stick the active language to the front of the list
-		array_unshift($languages, $_language);
+		array_unshift($languages, $language);
 
 		if ( ! $reload and
 		     ! is_array($file) and
 		     ! is_object($file) and
-		    array_key_exists($_language.'/'.$file, static::$loaded_files))
+		    array_key_exists($language.'/'.$file, static::$loaded_files))
 		{
 			$group === true and $group = $file;
-			if ($group === null or $group === false or ! isset(static::$lines[$_language][$group]))
+			if ($group === null or $group === false or ! isset(static::$lines[$language][$group]))
 			{
 				return false;
 			}
-			return static::$lines[$_language][$group];
+			return static::$lines[$language][$group];
 		}
 
 		$lang = array();
@@ -109,7 +109,7 @@ class Lang
 
 			if (class_exists($class))
 			{
-				static::$loaded_files[$_language.'/'.$file] = func_get_args();
+				static::$loaded_files[$language.'/'.$file] = func_get_args();
 				$file = new $class($file, $languages);
 			}
 			else
@@ -131,21 +131,21 @@ class Lang
 			$group = $group === true ? $file->group() : $group;
 		}
 
-		isset(static::$lines[$_language]) or static::$lines[$_language] = array();
+		isset(static::$lines[$language]) or static::$lines[$language] = array();
 		if ($group === null)
 		{
-			static::$lines[$_language] = $overwrite ? array_merge(static::$lines[$_language], $lang) : \Arr::merge(static::$lines[$_language], $lang);
+			static::$lines[$language] = $overwrite ? array_merge(static::$lines[$language], $lang) : \Arr::merge(static::$lines[$language], $lang);
 		}
 		else
 		{
 			$group = ($group === true) ? $file : $group;
 			if ($overwrite)
 			{
-				\Arr::set(static::$lines[$_language], $group, array_merge(\Arr::get(static::$lines[$_language], $group, array()), $lang));
+				\Arr::set(static::$lines[$language], $group, array_merge(\Arr::get(static::$lines[$language], $group, array()), $lang));
 			}
 			else
 			{
-				\Arr::set(static::$lines[$_language], $group, \Arr::merge(\Arr::get(static::$lines[$_language], $group, array()), $lang));
+				\Arr::set(static::$lines[$language], $group, \Arr::merge(\Arr::get(static::$lines[$language], $group, array()), $lang));
 			}
 		}
 
@@ -165,8 +165,8 @@ class Lang
 	{
 		($language === null) and $language = static::get_lang();
 
-		// if file is not an FQFN, prefix the file with the language
-		if ($file[0] != '/' and substr($file, 1, 2) != ':\\' and ! is_null($language))
+		// prefix the file with the language
+		if ( ! is_null($language))
 		{
 			$file = explode('::', $file);
 			end($file);

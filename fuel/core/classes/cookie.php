@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -34,7 +34,6 @@ class Cookie
 		'domain'                => null,
 		'secure'                => false,
 		'http_only'             => false,
-		'same_site'             => null,
 	);
 
 	/*
@@ -76,16 +75,16 @@ class Cookie
 	 * @param   string    $domain      domain of the cookie
 	 * @param   boolean   $secure      if true, the cookie should only be transmitted over a secure HTTPS connection
 	 * @param   boolean   $http_only   if true, the cookie will be made accessible only through the HTTP protocol
-	 * @param   string    $same_site   samesite restriction of cookie
 	 * @return  boolean
 	 */
-	public static function set($name, $value, $expiration = null, $path = null, $domain = null, $secure = null, $http_only = null, $same_site = null)
+	public static function set($name, $value, $expiration = null, $path = null, $domain = null, $secure = null, $http_only = null)
 	{
 		// you can't set cookies in CLi mode
 		if (\Fuel::$is_cli)
 		{
 			return false;
 		}
+
 		$value = \Fuel::value($value);
 
 		// use the class defaults for the other parameters if not provided
@@ -94,32 +93,11 @@ class Cookie
 		is_null($domain) and $domain = static::$config['domain'];
 		is_null($secure) and $secure = static::$config['secure'];
 		is_null($http_only) and $http_only = static::$config['http_only'];
-		is_null($same_site) and $same_site = static::$config['same_site'];
 
 		// add the current time so we have an offset
 		$expiration = $expiration > 0 ? $expiration + time() : 0;
 
-		// Avoid php 8.1 errors with null domain
-		is_null($domain) and $domain = '';
-
-		if (is_null($same_site))
-		{
-		    return setcookie($name, $value, $expiration, $path, $domain, $secure, $http_only);
-		}
-
-		if (PHP_VERSION_ID < 70300)
-		{
-		    return setcookie($name, $value, $expiration, "{$path}; samesite={$same_site}", $domain, $secure, $http_only);
-		}
-
-		return setcookie($name, $value, array(
-		    'expires' => $expiration,
-		    'path' => $path,
-		    'domain' => $domain,
-		    'samesite' => $same_site,
-		    'secure' => $secure,
-		    'httponly' => $http_only,
-		));
+		return setcookie($name, $value, $expiration, $path, $domain, $secure, $http_only);
 	}
 
 	/**
@@ -132,35 +110,15 @@ class Cookie
 	 * @param   string   $domain     domain of the cookie
 	 * @param   boolean  $secure     if true, the cookie should only be transmitted over a secure HTTPS connection
 	 * @param   boolean  $http_only  if true, the cookie will be made accessible only through the HTTP protocol
-	 * @param   string   $same_site  samesite of the cookie
 	 * @return  boolean
 	 * @uses    static::set
 	 */
-	public static function delete($name, $path = null, $domain = null, $secure = null, $http_only = null, $same_site = null)
+	public static function delete($name, $path = null, $domain = null, $secure = null, $http_only = null)
 	{
 		// Remove the cookie
 		unset($_COOKIE[$name]);
 
-		if (is_null($same_site))
-		{
-		    return static::set($name, "", -86400, $path, $domain, $secure, $http_only);
-		}
-
-		// use the class defaults for the other parameters if not provided
-		is_null($path) and $path = static::$config['path'];
-		is_null($domain) and $domain = static::$config['domain'];
-		is_null($secure) and $secure = static::$config['secure'];
-		is_null($http_only) and $http_only = static::$config['http_only'];
-
-		// Avoid php 8.1 errors with null domain
-		is_null($domain) and $domain = '';
-
 		// Nullify the cookie and make it expire
-		if (PHP_VERSION_ID < 70300)
-		{
-		    return setcookie($name, "", -86400, "{$path}; samesite={$same_site}", $domain, $secure, $http_only);
-		}
-
-		return setcookie($name, "", array('expires' => -86400, 'path' => $path, 'domain' => $domain, 'samesite' => $same_site, 'secure' => $secure,'httponly' => $http_only));
+		return static::set($name, null, -86400, $path, $domain, $secure, $http_only);
 	}
 }

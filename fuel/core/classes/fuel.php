@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -28,7 +28,7 @@ class Fuel
 	/**
 	 * @var  string  The version of Fuel
 	 */
-	const VERSION = '1.9-dev';
+	const VERSION = '1.8.2';
 
 	/**
 	 * @var  string  constant used for when in testing mode
@@ -126,20 +126,12 @@ class Fuel
 			throw new \FuelException("You can't initialize Fuel more than once.");
 		}
 
-		\Config::load($config);
-
-		// Enable profiling if needed
-		static::$profiling = \Config::get('profiling', false);
-		if (static::$profiling or \Config::get('log_profile_data', false))
-		{
-			\Profiler::init();
-			\Profiler::mark(__METHOD__.' Start');
-		}
-
 		static::$_paths = array(APPPATH, COREPATH);
 
 		// Is Fuel running on the command line?
 		static::$is_cli = (bool) defined('STDIN');
+
+		\Config::load($config);
 
 		// Disable output compression if the client doesn't support it
 		if (static::$is_cli or ! in_array('gzip', explode(', ', \Input::headers('Accept-Encoding', ''))))
@@ -153,6 +145,13 @@ class Fuel
 		if (\Config::get('caching', false))
 		{
 			\Finder::instance()->read_cache('FuelFileFinder');
+		}
+
+		// Enable profiling if needed
+		static::$profiling = \Config::get('profiling', false);
+		if (static::$profiling or \Config::get('log_profile_data', false))
+		{
+			\Profiler::init();
 		}
 
 		// set a default timezone if one is defined
@@ -172,18 +171,11 @@ class Fuel
 
 		static::$locale = \Config::get('locale', static::$locale);
 
-		// Set locale, throw an error when it fails
+		// Set locale, log warning when it fails
 		if (static::$locale)
 		{
-			foreach( (array) \Config::get('locale_category', LC_ALL) as $category)
-			{
-				if ( ! $set = setlocale($category, static::$locale))
-				{
-					throw new \PHPErrorException('The configured locale(s) "'.implode(',', (array) static::$locale).'" can not be found on your system.');
-				}
-			}
-			// update the locale with the one actually set
-			static::$locale = $set;
+			setlocale(LC_ALL, static::$locale) or
+				logger(\Fuel::L_WARNING, 'The configured locale '.static::$locale.' is not installed on your system.', __METHOD__);
 		}
 
 		if ( ! static::$is_cli)
@@ -194,14 +186,14 @@ class Fuel
 			}
 		}
 
+		// Load in the routes
+		\Config::load('routes', true);
+		\Router::add(\Config::get('routes'));
+
 		\Event::register('fuel-shutdown', 'Fuel::finish');
 
 		// Always load classes, config & language set in always_load.php config
 		static::always_load();
-
-		// Load in the routes
-		\Config::load('routes', true);
-		\Router::add(\Config::get('routes'));
 
 		// BC FIX FOR APPLICATIONS <= 1.6.1, makes Redis_Db available as Redis,
 		// like it was in versions before 1.7
@@ -361,7 +353,7 @@ class Fuel
 		{
 			foreach ($array['classes'] as $class)
 			{
-				if ( ! \Autoloader::load(\Str::ucwords($class)))
+				if ( ! class_exists($class = \Str::ucwords($class)))
 				{
 					throw new \FuelException('Class '.$class.' defined in your "always_load" config could not be loaded.');
 				}
@@ -411,32 +403,29 @@ class Fuel
 	 */
 	public static function clean_path($path)
 	{
-		// storage for all framework paths
-		static $paths = array();
+		// framework default paths
+		static $paths = array(
+			'APPPATH/' => APPPATH,
+			'COREPATH/' => COREPATH,
+			'PKGPATH/' => PKGPATH,
+			'DOCROOT/' => DOCROOT,
+			'VENDORPATH/' => VENDORPATH,
+		);
 
 		// storage for the search/replace strings
 		static $search = array();
 		static $replace = array();
 
-		// construct the paths list
-		if (empty($paths))
+		// only do this once
+		if (empty($search))
 		{
-			$paths = array(
-				'DOCROOT/' => DOCROOT,
-				'APPPATH/' => APPPATH,
-				'COREPATH/' => COREPATH,
-				'PKGPATH/' => PKGPATH,
-				'VENDORPATH/' => VENDORPATH,
-			) + \Config::get('security.clean_paths', array());
-			arsort($paths);
+			// additional paths configured than need cleaning
+			$extra = \Config::get('security.clean_paths', array());
 
-			foreach ($paths as $r => $s)
+			foreach ($paths + $extra as $r => $s)
 			{
-				if ($s != '/' and is_dir($s))
-				{
-					$search[] = rtrim($s, DS).DS;
-					$replace[] = rtrim($r, DS).DS;
-				}
+				$search[] = rtrim($s, DS).DS;
+				$replace[] = rtrim($r, DS).DS;
 			}
 		}
 

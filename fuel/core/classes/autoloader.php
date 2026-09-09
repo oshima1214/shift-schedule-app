@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -68,7 +68,6 @@ class Autoloader
 	 */
 	public static function add_namespace($namespace, $path, $psr = false)
 	{
-		$path = rtrim($path, DS).DS;
 		static::$namespaces[$namespace] = $path;
 		if ($psr)
 		{
@@ -85,11 +84,6 @@ class Autoloader
 	 */
 	public static function add_namespaces(array $namespaces, $prepend = false)
 	{
-		foreach ($namespaces as $ns => $path)
-		{
-			$namespaces[$ns] = rtrim($path, DS).DS;
-		}
-
 		if ( ! $prepend)
 		{
 			static::$namespaces = array_merge(static::$namespaces, $namespaces);

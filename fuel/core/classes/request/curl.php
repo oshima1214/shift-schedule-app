@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -142,6 +142,7 @@ class Request_Curl extends \Request_Driver
 		}
 
 		$additional_params and $this->params = \Arr::merge($this->params, $additional_params);
+		$this->method and $this->options[CURLOPT_CUSTOMREQUEST] = $this->method;
 
 		if ( ! empty($this->method))
 		{
@@ -161,7 +162,7 @@ class Request_Curl extends \Request_Driver
 		$body = curl_exec($connection);
 		$this->response_info = curl_getinfo($connection);
 		$this->response_info['response'] = $body;
-		$mime = $this->response_info('content_type', 'text/plain') ?: '';
+		$mime = $this->response_info('content_type', 'text/plain');
 
 		// Was header data requested?
 		$headers = array();
@@ -198,6 +199,7 @@ class Request_Curl extends \Request_Driver
 		else
 		{
 			// Request successful
+			curl_close($connection);
 			$this->set_defaults();
 
 			return $this;
@@ -302,10 +304,6 @@ class Request_Curl extends \Request_Driver
 		// Detect the request content type, default to 'text/plain'
 		$content_type = isset($this->headers['Content-Type']) ? $this->headers['Content-Type'] : $this->response_info('content_type', 'text/plain');
 
-		// strip additional directives
-		$content_type = explode(';', $content_type);
-		$content_type = trim($content_type[0]);
-
 		// Get the correct format for the current content type
 		$format = \Arr::key_exists(static::$auto_detect_formats, $content_type) ? static::$auto_detect_formats[$content_type] : null;
 
@@ -357,7 +355,7 @@ class Request_Curl extends \Request_Driver
 					else
 					{
 						//application/x-www-form-urlencoded
-						return http_build_query($input, '', '&');
+						return http_build_query($input, null, '&');
 					}
 				break;
 		}

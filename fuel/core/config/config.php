@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -159,7 +159,7 @@ return array(
 		 *  Which errors should we show, but continue execution? You can add
 		 *  the following:
 		 *
-		 *      E_NOTICE, E_WARNING, E_DEPRECATED, or E_STRICT ( only < PHP 8.4)
+		 *      E_NOTICE, E_WARNING, E_DEPRECATED, E_STRICT
 		 *
 		 *  to mimic PHP's default behaviour (which is to continue
 		 *  on non-fatal errors). We consider this bad practice.
@@ -235,8 +235,6 @@ return array(
 	 */
 
 	'locale' => 'en_US',
-
-	'locale-category' => LC_ALL,
 
 	/**
 	 * -------------------------------------------------------------------------
@@ -598,17 +596,6 @@ return array(
 		 */
 
 		'http_only' => false,
-
-		/**
-		 * ---------------------------------------------------------------------
-		 *  Security - Mode
-		 * ---------------------------------------------------------------------
-		 *
-		 *  Samesite restrictions on cookie, options include Lax, Strict or None.
-		 *
-		 */
-
-		'same_site' => null,
 	),
 
 	/**
@@ -646,18 +633,6 @@ return array(
 	 */
 
 	'routing' => array(
-		/**
-		 * ---------------------------------------------------------------------
-		 *  Recursive
-		 * ---------------------------------------------------------------------
-		 *
-		 *  Whether or not a matched route should be looked up again if it
-		 *  can't be resolved to a controller.
-		 *
-		 */
-
-		'recursive' => false,
-
 		/**
 		 * ---------------------------------------------------------------------
 		 *  Compatibility

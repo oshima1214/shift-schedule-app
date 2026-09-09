@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -131,12 +131,7 @@ class Str
 	 */
 	public static function starts_with($str, $start, $ignore_case = false)
 	{
-		if (PHP_VERSION_ID >= 80000)
-		{
-			return $ignore_case ? str_starts_with(strtolower($str), strtolower($start)) : str_starts_with($str, $start);
-		}
-
-		return (bool) preg_match('/^'.preg_quote($start, '/').'/m'.($ignore_case ? 'i' : ''), (string) $str);
+		return (bool) preg_match('/^'.preg_quote($start, '/').'/m'.($ignore_case ? 'i' : ''), $str);
 	}
 
 	/**
@@ -149,11 +144,6 @@ class Str
 	 */
 	public static function ends_with($str, $end, $ignore_case = false)
 	{
-		if (PHP_VERSION_ID >= 80000)
-		{
-			return $ignore_case ? str_ends_with(strtolower($str), strtolower($end)) : str_ends_with($str, $end);
-		}
-
 		return (bool) preg_match('/'.preg_quote($end, '/').'$/m'.($ignore_case ? 'i' : ''), $str);
 	}
 
@@ -162,53 +152,66 @@ class Str
 	  *
 	  * @param   string  $type    the type of string
 	  * @param   int     $length  the number of characters
-	  * @return  string  the random string (or int in case of "basic")
+	  * @return  string  the random string
 	  */
 	public static function random($type = 'alnum', $length = 16)
 	{
-		// closure to generate a random string
-		$generate = function($length, $pool) {
-			$str = '';
-			for ($i=0; $i < $length; $i++)
-			{
-				if (PHP_VERSION_ID >= 70000)
-				{
-					$str .= substr($pool, random_int(0, strlen($pool) -1), 1);
-				}
-				else
-				{
-					$str .= substr($pool, mt_rand(0, strlen($pool) -1), 1);
-				}
-			}
-			return $str;
-		};
-
 		switch($type)
 		{
 			case 'basic':
-				return PHP_VERSION_ID >= 70000 ? random_int(0, mt_getrandmax()) : mt_rand();
+				return mt_rand();
+				break;
 
+			default:
+			case 'alnum':
 			case 'numeric':
-				return $generate($length, '0123456789');
-
 			case 'nozero':
-				return $generate($length, '123456789');
-
 			case 'alpha':
-				return $generate($length, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
-
 			case 'distinct':
-				return $generate($length, '2345679ACDEFHJKLMNPRSTUVWXYZ');
-
 			case 'hexdec':
-				return $generate($length, '0123456789abcdef');
+				switch ($type)
+				{
+					case 'alpha':
+						$pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+						break;
 
-			case 'md5':
+					default:
+					case 'alnum':
+						$pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+						break;
+
+					case 'numeric':
+						$pool = '0123456789';
+						break;
+
+					case 'nozero':
+						$pool = '123456789';
+						break;
+
+					case 'distinct':
+						$pool = '2345679ACDEFHJKLMNPRSTUVWXYZ';
+						break;
+
+					case 'hexdec':
+						$pool = '0123456789abcdef';
+						break;
+				}
+
+				$str = '';
+				for ($i=0; $i < $length; $i++)
+				{
+					$str .= substr($pool, mt_rand(0, strlen($pool) -1), 1);
+				}
+				return $str;
+				break;
+
 			case 'unique':
-				return static::random('hexdec', 32);
+				return md5(uniqid(mt_rand()));
+				break;
 
 			case 'sha1' :
-				return static::random('hexdec', 40);
+				return sha1(uniqid(mt_rand(), true));
+				break;
 
 			case 'uuid':
 			    $pool = array('8', '9', 'a', 'b');
@@ -216,13 +219,10 @@ class Str
 					static::random('hexdec', 8),
 					static::random('hexdec', 4),
 					static::random('hexdec', 3),
-					PHP_VERSION_ID >= 70000 ? $pool[random_int(0, count($pool)-1)] : $pool[array_rand($pool)],
+					$pool[array_rand($pool)],
 					static::random('hexdec', 3),
 					static::random('hexdec', 12));
-
-			case 'alnum':
-			default:
-				return $generate($length, '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+				break;
 		}
 	}
 
@@ -628,63 +628,6 @@ class Str
 			? mb_convert_case($str, MB_CASE_TITLE, $encoding)
 			: ucwords(strtolower($str));
 	}
-
-	/**
-	 * Locale awware version of number_format
-	 *
-	 * @param   mixed        $num                    float, or any value that can be converted to float
-	 * @param   int|null     $decimals               number of decimals, defaults to the number defined by the lcoale
-	 * @param   string|null  $thousands_separator    thousands separator, defaults to the string defined by the lcoale
-	 * @param   string|null  $decimal_separator      decimal separator, defaults to the string defined by the lcoale
-	 * @param   string|null  $currency_symbol        currency symbol, defaults to the string defined by the lcoale, false if no symbol should be added
-	 *
-	 * @return  string
-	 */
-	public static function number_format($num, $decimals = null, $thousands_separator = null, $decimal_separator = null, $currency_symbol = false)
-	{
-		// make sure we have a float value to start with
-		$num = floatval($num);
-
-		// get the locale info
-		$locale_info = localeconv();
-
-		// fill in the defaults
-		is_null($decimals) and $decimals = $locale_info['frac_digits'];
-		is_null($decimal_separator) and $decimal_separator = $locale_info['decimal_point'];
-		is_null($thousands_separator) and $thousands_separator = $locale_info['thousands_sep'];
-		is_null($currency_symbol) and $currency_symbol = $locale_info['currency_symbol'];
-
-		$result = number_format($num, $decimals, $decimal_separator, $thousands_separator);
-
-		if ($currency_symbol !== false)
-		{
-			if ($num >= 0)
-			{
-				if ($locale_info['p_cs_precedes'])
-				{
-					$result = $currency_symbol . ($locale_info['p_sep_by_space'] ? ' ' : '') . $result;
-				}
-				else
-				{
-					$result .= ($locale_info['p_sep_by_space'] ? ' ' : '') . $currency_symbol;
-				}
-			}
-			else
-			{
-				if ($locale_info['n_cs_precedes'])
-				{
-					$result = $currency_symbol . ($locale_info['n_sep_by_space'] ? ' ' : '') . $result;
-				}
-				else
-				{
-					$result .= ($locale_info['n_sep_by_space'] ? ' ' : '') . $currency_symbol;
-				}
-			}
-		}
-
-		return $result;
-	}
-
 
 	// deprecated methods
 

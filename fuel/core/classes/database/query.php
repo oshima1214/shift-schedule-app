@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -84,7 +84,7 @@ class Database_Query
 			// Return the SQL string
 			return $this->compile();
 		}
-		catch (\Throwable $e)
+		catch (\Exception $e)
 		{
 			return $e->getMessage();
 		}
@@ -249,7 +249,7 @@ class Database_Query
 		}
 
 		// Import the SQL locally
-		$sql = (string) $this->_sql;
+		$sql = $this->_sql;
 
 		if ( ! empty($this->_parameters))
 		{
@@ -319,7 +319,7 @@ class Database_Query
 		}
 
 		// fetch the result caching flag
-		$caching = isset($this->_caching) ? $this->_caching : $db->caching();
+		$caching = $this->_caching or $db->caching();
 
 		if ($caching and ! empty($this->_lifetime) and $this->_type === \DB::SELECT)
 		{

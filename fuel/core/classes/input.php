@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -37,18 +37,8 @@ class Input
 	 *
 	 * @return Input_Instance
 	 */
-	public static function forge($new = null, $input = null)
+	public static function forge(Request $new = null, Input_Instance $input = null)
 	{
-		if ( ! is_null($new) and ! $new instanceOf Request)
-		{
-			throw new \FuelException(__FUNCTION__ . ': Argument #1 ($new) must be an instance of Request, ' . gettype($new) . ' given');
-		}
-
-		if ( ! is_null($input) and ! $input instanceOf Input_Instance)
-		{
-			throw new \FuelException(__FUNCTION__ . ': Argument #2 ($input) must be an instance of Input_Instance, ' . gettype($input) . ' given');
-		}
-
 		if ($new)
 		{
 			return new \Input_Instance($new, $input);
@@ -129,7 +119,7 @@ class Input
 			});
 
 			$ips = array_filter($ips, function($ip) use($exclude_reserved) {
-				return filter_var($ip, FILTER_VALIDATE_IP, $exclude_reserved ? FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE : false);
+				return filter_var($ip, FILTER_VALIDATE_IP, $exclude_reserved ? FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE : null);
 			});
 
 			if ($ips)

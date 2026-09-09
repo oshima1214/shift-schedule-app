@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -243,8 +243,7 @@ class Fieldset_Field
 		{
 			if (($this->type == 'radio' or $this->type == 'checkbox') and empty($this->options))
 			{
-				$this->value = $value;
-				if ($this->value)
+				if ($this->value == $value)
 				{
 					$this->set_attribute('checked', 'checked');
 				}
@@ -456,16 +455,6 @@ class Fieldset_Field
 	}
 
 	/**
-	 * Magic isset method to check if properties exists and are set
-	 *
-	 * @return  bool
-	 */
-	public function __isset($property)
-	{
-		return property_exists($this, $property) and ! is_null($this->$property);
-	}
-
-	/**
 	 * Magic get method to allow getting class properties but still having them protected
 	 * to disallow writing.
 	 *
@@ -487,7 +476,7 @@ class Fieldset_Field
 		{
 			return $this->build();
 		}
-		catch (\Throwable $e)
+		catch (\Exception $e)
 		{
 			return $e->getMessage();
 		}
@@ -531,17 +520,6 @@ class Fieldset_Field
 	public function add_after($name, $label = '', array $attributes = array(), array $rules = array(), $fieldname = null)
 	{
 		return $this->fieldset()->add_after($name, $label, $attributes, $rules, $fieldname);
-	}
-
-	/**
-	 * Alias for $this->fieldset->disable() to allow chaining
-	 *
-	 * @return Fieldset_Field
-	 */
-	public function disable()
-	{
-		$this->fieldset()->disable($this->name);
-		return $this;
 	}
 
 	/**
@@ -649,8 +627,8 @@ class Fieldset_Field
 	{
 		$form = $this->fieldset()->form();
 
-		$required_mark = $this->get_attribute('required', null) ? $form->get_config('required_mark', '') : '';
-		$label = $this->label ? $form->label($this->label, null, array('id' => 'label_'.$this->name, 'for' => $this->get_attribute('id', ''), 'class' => $form->get_config('label_class', ''))) : '';
+		$required_mark = $this->get_attribute('required', null) ? $form->get_config('required_mark', null) : null;
+		$label = $this->label ? $form->label($this->label, null, array('id' => 'label_'.$this->name, 'for' => $this->get_attribute('id', null), 'class' => $form->get_config('label_class', null))) : '';
 		$error_template = $form->get_config('error_template', '');
 		$error_msg = ($form->get_config('inline_errors') && $this->error()) ? str_replace('{error_msg}', $this->error(), $error_template) : '';
 		$error_class = $this->error() ? $form->get_config('error_class') : '';

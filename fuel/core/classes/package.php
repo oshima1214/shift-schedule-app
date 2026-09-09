@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -55,15 +55,10 @@ class Package
 					$pkg = $path;
 					$path = null;
 				}
-				// MUST use external brackets due to prio('and') < prio('=') < prio('&&') -
-				// don't remove them xor replace 'and' with '&&'
-				$result = (static::load($pkg, $path) and $result);
+				$result = $result and static::load($pkg, $path);
 			}
 			return $result;
 		}
-
-		// unify the name
-		$package = ucfirst($package);
 
 		if (static::loaded($package))
 		{
@@ -109,11 +104,7 @@ class Package
 	 */
 	public static function unload($package)
 	{
-		// unify the name
-		$package = ucfirst($package);
-
 		\Finder::instance()->remove_path(static::$packages[$package]);
-
 		unset(static::$packages[$package]);
 	}
 
@@ -131,48 +122,7 @@ class Package
 			return static::$packages;
 		}
 
-		// unify the name
-		$package = ucfirst($package);
-
 		return array_key_exists($package, static::$packages);
-	}
-
-	/**
-	 * Checks if the given package is installed, if no package is given then
-	 * all installed packages are returned.
-	 *
-	 * @param   string|null  $package  The package name or null
-	 * @return  bool|array  Whether the package is loaded, or all package
-	 */
-	public static function installed($package = null)
-	{
-		// storage for installed packages
-		static $packages;
-
-		// enumerate the packages on first call
-		if (is_null($packages))
-		{
-			// loop through package paths
-			foreach (\Config::get('package_paths', array(PKGPATH)) as $path)
-			{
-				// get all packages installed in this path
-				foreach(new \GlobIterator(realpath($path).DS.'*') as $p)
-				{
-					$packages[] = $p->getBasename();
-				}
-			}
-		}
-
-		// return all packages if none is given
-		if ($package === null)
-		{
-			return $packages;
-		}
-
-		// unify the name
-		$package = strtolower($package);
-
-		return array_key_exists($package, $packages);
 	}
 
 	/**
@@ -183,9 +133,6 @@ class Package
 	 */
 	public static function exists($package)
 	{
-		// unify the name
-		$package = ucfirst($package);
-
 		if (array_key_exists($package, static::$packages))
 		{
 			return static::$packages[$package];

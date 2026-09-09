@@ -42,7 +42,7 @@
 			<h1>500 - Internal Server Error!</h1>
 		</div>
 		<div id="body">
-			<p><?=(\Str::starts_with(\Fuel::$env, \Fuel::PRODUCTION) or empty($message)) ? 'Something has gone horribly wrong.' : $message?></p>
+			<p>Something has gone horribly wrong.</p>
 		</div>
 	</div>
 </body>

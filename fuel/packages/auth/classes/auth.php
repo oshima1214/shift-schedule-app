@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -46,10 +46,8 @@ class Auth
 	 * @var  Array  subdriver registry, takes driver name and method for checking it
 	 */
 	protected static $_drivers = array(
-		'member' => 'group',
-		'has_access' => 'acl',
-		'has_any_access' => 'acl',
-		'has_all_access' => 'acl',
+		'group'  => 'member',
+		'acl'    => 'has_access',
 	);
 
 	public static function _init()
@@ -80,18 +78,16 @@ class Auth
 	 */
 	public static function forge($custom = array())
 	{
-		// make sure custom is an array
+		// Driver is given as array key or just string in custom
 		$custom = ! is_array($custom) ? array('driver' => $custom) : $custom;
-
-		// driver must be set
-		if (empty($custom['driver']) or ! is_string($custom['driver']))
-		{
-			throw new \AuthException('No auth driver specified when calling forge().');
-		}
-
-		// fetch any custom config for this driver and merge it in
 		$config = \Config::get('auth.'.$custom['driver'].'_config', array());
 		$config = array_merge($config, $custom);
+
+		// Driver must be set
+		if (empty($config['driver']) || ! is_string($config['driver']))
+		{
+			throw new \AuthException('No auth driver given.');
+		}
 
 		// determine the driver to load
 		$driver = \Auth_Login_Driver::forge($config);
@@ -321,14 +317,14 @@ class Auth
 	public static function register_driver_type($type, $check_method)
 	{
 		$driver_exists = ! is_string($type)
-						|| in_array($type, static::$_drivers)
+						|| array_key_exists($type, static::$_drivers)
 						|| method_exists(get_called_class(), $check_method)
 						|| in_array($type, array('login', 'group', 'acl'));
 		$method_exists = ! is_string($type)
-						|| array_search($check_method, array_keys(static::$_drivers))
+						|| array_search($check_method, static::$_drivers)
 						|| method_exists(get_called_class(), $type);
 
-		if ($driver_exists && static::$_drivers[$check_method] == $type)
+		if ($driver_exists && static::$_drivers[$type] == $check_method)
 		{
 			return true;
 		}
@@ -339,8 +335,7 @@ class Auth
 			return false;
 		}
 
-		static::$_drivers[$check_method] = $type;
-
+		static::$_drivers[$type] = $check_method;
 		return true;
 	}
 
@@ -358,7 +353,7 @@ class Auth
 			return false;
 		}
 
-		static::$_drivers == array_diff(static::$_drivers, array($type));
+		unset(static::$_drivers[$type]);
 		return true;
 	}
 
@@ -372,15 +367,14 @@ class Auth
 	 */
 	public static function __callStatic($method, $args)
 	{
-		if (in_array($method, static::$_drivers))
+		$args = array_pad($args, 3, null);
+		if (array_key_exists($method, static::$_drivers))
 		{
-			array_unshift($args, $method);
-			return static::_driver_instance(...$args);
+			return static::_driver_instance($method, $args[0]);
 		}
-		if ($type = array_search($method, array_keys(static::$_drivers)))
+		if ($type = array_search($method, static::$_drivers))
 		{
-			array_unshift($args, array_keys(static::$_drivers)[$type]);
-			return static::_driver_check(...$args);
+			return static::_driver_check($type, $args[0], $args[1], @$args[2]);
 		}
 		if (static::$_verify_multiple !== true and method_exists(static::$_instance, $method))
 		{
@@ -407,16 +401,16 @@ class Auth
 	/**
 	 * Check driver
 	 *
-	 * @param   string  driver method
+	 * @param   string  driver type
 	 * @param   mixed   condition for which the driver is checked
 	 * @param   string  driver id or null to check all
 	 * @param   Array   identifier to check, should default to current user or relation therof and be
 	 *                  in the form of array(driver_id, user_id)
 	 * @return bool
 	 */
-	public static function _driver_check($method, $condition, $driver = null, $entity = null)
+	public static function _driver_check($type, $condition, $driver = null, $entity = null)
 	{
-		$type = static::$_drivers[$method];
+		$method = static::$_drivers[$type];
 		if ($driver === null)
 		{
 			if ($entity === null)

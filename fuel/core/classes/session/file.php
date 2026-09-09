@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -55,18 +55,11 @@ class Session_File extends \Session_Driver
 
 				while (($file = readdir($handle)) !== false)
 				{
-					if (file_exists($this->config['path'] . $file))
+					if (filetype($this->config['path'] . $file) == 'file' and
+						strpos($file, $this->config['cookie_name'].'_') === 0 and
+						filemtime($this->config['path'] . $file) < $expire)
 					{
-						clearstatcache(true, $this->config['path'] . $file);
-						if (filetype($this->config['path'] . $file) == 'file' and
-							strpos($file, $this->config['cookie_name'].'_') === 0 and
-							filemtime($this->config['path'] . $file) < $expire)
-						{
-							if (is_file($this->config['path'] . $file))
-							{
-								unlink($this->config['path'] . $file);
-							}
-						}
+						@unlink($this->config['path'] . $file);
 					}
 				}
 
@@ -91,7 +84,6 @@ class Session_File extends \Session_Driver
 		{
 			// delete the session file
 			$file = $this->config['path'].$this->config['cookie_name'].'_'.$this->keys['session_id'];
-			clearstatcache(true, $file);
 			if (is_file($file))
 			{
 				unlink($file);

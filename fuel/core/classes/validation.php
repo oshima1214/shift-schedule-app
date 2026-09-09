@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -861,7 +861,7 @@ class Validation
 
 		foreach ($emails as $e)
 		{
-			if ( ! is_string($e) or ! filter_var(trim($e), FILTER_VALIDATE_EMAIL))
+			if ( ! filter_var(trim($e), FILTER_VALIDATE_EMAIL))
 			{
 				return false;
 			}
@@ -887,7 +887,7 @@ class Validation
 	 * @param   string  ipv4|ipv6
 	 * @return  bool
 	 */
-	public function _validation_valid_ip($val, $flag = '')
+	public function _validation_valid_ip($val, $flag = null)
 	{
 		switch (strtolower($flag))
 		{
@@ -896,9 +896,6 @@ class Validation
 				break;
 			case 'ipv6':
 				$flag = FILTER_FLAG_IPV6;
-				break;
-			default:
-				$flag = 0;
 				break;
 		}
 
@@ -995,7 +992,7 @@ class Validation
 	 */
 	public function _validation_numeric_min($val, $min_val)
 	{
-		return $this->_empty($val) || $this->float_val($val) >= $this->float_val($min_val);
+		return $this->_empty($val) || floatval($val) >= floatval($min_val);
 	}
 
 	/**
@@ -1007,7 +1004,7 @@ class Validation
 	 */
 	public function _validation_numeric_max($val, $max_val)
 	{
-		return $this->_empty($val) || $this->float_val($val) <= $this->float_val($max_val);
+		return $this->_empty($val) || floatval($val) <= floatval($max_val);
 	}
 
 	/**
@@ -1020,7 +1017,7 @@ class Validation
 	 */
 	public function _validation_numeric_between($val, $min_val, $max_val)
 	{
-		return $this->_empty($val) or ($this->float_val($val) >= $this->float_val($min_val) and $this->float_val($val) <= $this->float_val($max_val));
+		return $this->_empty($val) or (floatval($val) >= floatval($min_val) and floatval($val) <= floatval($max_val));
 	}
 
 	/**
@@ -1083,30 +1080,4 @@ class Validation
 			return false;
 		}
 	}
-
-	/**
-	 * Trim validation replacement, to be able to handle non-string values (deprecated in PHP now)
-	 *
-	 * @param   mixed   $val
-	 * @return  mixed
-	 * @throws  \Validation_Error
-	 */
-	public function _validation_trim($val)
-	{
-		is_string($val) and $val = trim($val);
-
-		return $val;
-	}
-
-	/**
-	 * locale-aware floatval()
-	 */
-	protected function float_val($val)
-	{
-		$locale_info = localeconv();
-		$val = str_replace($locale_info["mon_thousands_sep"] , "", $val);
-		$val = str_replace($locale_info["mon_decimal_point"] , ".", $val);
-		return floatval($val);
-	}
-
 }

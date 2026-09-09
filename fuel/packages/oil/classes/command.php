@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -184,7 +184,7 @@ HELP;
 						@include_once $phpunit_autoload_path;
 
 						// Attempt to load PHUnit.  If it fails, we are done.
-						if ( ! $is_phar and ! (class_exists('PHPUnit_Framework_TestCase') or class_exists('PHPUnit\Framework\TestCase')))
+						if ( ! $is_phar and ! class_exists('PHPUnit_Framework_TestCase'))
 						{
 							throw new Exception('PHPUnit does not appear to be installed.'.PHP_EOL.PHP_EOL."\tPlease visit https://phpunit.de and install.");
 						}
@@ -314,7 +314,7 @@ HELP;
 			\Cli::error($ex->getTraceAsString());
 		}
 		\Cli::beep();
-		\Cli::option('speak') and shell_exec('say --voice="Trinoids" "{$ex->getMessage()}"');
+		\Cli::option('speak') and `say --voice="Trinoids" "{$ex->getMessage()}"`;
 
 		// print any previous exception(s) too...
 		if (($previous = $ex->getPrevious()) != null)

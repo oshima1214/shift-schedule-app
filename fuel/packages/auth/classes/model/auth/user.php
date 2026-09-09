@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -38,13 +38,22 @@ class Auth_User extends \Orm\Model
 		'id'              => array(),
 		'username'        => array(
 			'label'       => 'auth_model_user.name',
+			'default'     => 0,
 			'null'        => false,
 			'validation'  => array('required', 'max_length' => array(255)),
 		),
 		'email'           => array(
 			'label'       => 'auth_model_user.email',
+			'default'     => 0,
 			'null'        => false,
 			'validation'  => array('required', 'valid_email'),
+		),
+		'group'	          => array(
+			'label'       => 'auth_model_user.group_id',
+			'default'     => 0,
+			'null'        => false,
+			'form'        => array('type' => 'select'),
+			'validation'  => array('required', 'match_pattern' => array('/^[1-9]\d*$/')),
 		),
 		'group_id'        => array(
 			'label'       => 'auth_model_user.group_id',
@@ -55,14 +64,10 @@ class Auth_User extends \Orm\Model
 		),
 		'password'        => array(
 			'label'       => 'auth_model_user.password',
+			'default'     => 0,
 			'null'        => false,
 			'form'        => array('type' => 'password'),
 			'validation'  => array('min_length' => array(8), 'match_field' => array('confirm')),
-		),
-		'salt'            => array(
-			'default'     => '',
-			'null'        => false,
-			'form'        => array('type' => false),
 		),
 		'profile_fields'  => array(
 			'default'     => array(),
@@ -134,6 +139,7 @@ class Auth_User extends \Orm\Model
 			'model_to' => 'Model\\Auth_Group',
 			'key_from' => 'group_id',
 			'key_to'   => 'id',
+			'cascade_delete' => false,
 		),
 	);
 
@@ -145,19 +151,19 @@ class Auth_User extends \Orm\Model
 			'model_to' => 'Model\\Auth_Metadata',
 			'key_from' => 'id',
 			'key_to'   => 'parent_id',
-			'constraint' => \Orm\Relation::CONSTRAINT_CASCADE,
+			'cascade_delete' => true,
 		),
 		'userpermission' => array(
 			'model_to' => 'Model\\Auth_Userpermission',
 			'key_from' => 'id',
 			'key_to'   => 'user_id',
-			'constraint' => \Orm\Relation::CONSTRAINT_CASCADE,
+			'cascade_delete' => false,
 		),
 		'providers' => array(
 			'model_to' => 'Model\\Auth_Provider',
 			'key_from' => 'id',
 			'key_to'   => 'parent_id',
-			'constraint' => \Orm\Relation::CONSTRAINT_CASCADE,
+			'cascade_delete' => true,
 		),
 	);
 

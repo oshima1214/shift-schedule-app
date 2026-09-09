@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -332,32 +332,6 @@ class Num
 		is_null($format) and $format = static::$config['formatting']['credit_card'];
 		return static::mask_string($string, $format);
 	}
-
-	/**
-	 * Locale aware floatval
-	 *
-	 * @param   string     containing a representation of a decimal number, with or without separators
-	 * @param   string     thousands separator, if null, the locale value will be used
-	 * @param   string     decimal separator, if null, the locale value will be used
-	 *
-	 * @return  float
-	 */
-	public static function floatval(string $num, $thousands_separator = null, $decimal_separator = null)
-	{
-		// get the locale info
-		$locale_info = localeconv();
-
-		// fill in the defaults
-		is_null($decimal_separator) and $decimal_separator = $locale_info['decimal_point'];
-		is_null($thousands_separator) and $thousands_separator = $locale_info['thousands_sep'];
-
-		// convert it to a string containing a float representation
-		$num = str_replace(array($thousands_separator, $decimal_separator), array('', '.'), str_replace(' ', '', trim($num)));
-
-		// return the float value
-		return floatval($num);
-	}
-
 }
 
 /* End of file num.php */

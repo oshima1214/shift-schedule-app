@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -824,11 +824,10 @@ class Fieldset
 	 * @param  array      $parent      Collection of Model objects from a many relation
 	 * @param  int        $blanks      Number of empty rows to generate
 	 * @param  Pagination $pagination  If the tabular form must be paginated, a pagination object
-	 * @param  bool       $readonly    Whether or not the tabular form fields are readonly / disabled
 	 *
 	 * @return  Fieldset  this, to allow chaining
 	 */
-	public function set_tabular_form($model, $relation, $parent, $blanks = 1, $pagination = null, $readonly = false)
+	public function set_tabular_form($model, $relation, $parent, $blanks = 1, $pagination = null)
 	{
 		// make sure our parent is an ORM model instance
 		if ( ! $parent instanceOf \Orm\Model)
@@ -925,22 +924,11 @@ class Fieldset
 
 			// and add the model fields to the row fielset
 			$fieldset->add_model($model, $row)->set_fieldset_tag(false);
-
-			// disable the fields if needed
-			if ($readonly)
-			{
-				foreach ($fieldset->field() as $f)
-				{
-					$f->set_attribute('disabled', true)->set_attribute('readonly', true)->delete_rule('required');
-				}
-			}
-
 			$fieldset->set_config(array(
 				'form_template' => \Config::get('form.tabular_row_template', "<table>{fields}</table>\n"),
 				'field_template' => \Config::get('form.tabular_row_field_template', "{field}"),
 			));
-
-			$fieldset->add($this->tabular_form_relation.'['.$row->{$primary_key}.'][_delete]', '', array('type' => 'checkbox', 'value' => 1, 'disabled' => $readonly));
+			$fieldset->add($this->tabular_form_relation.'['.$row->{$primary_key}.'][_delete]', '', array('type' => 'checkbox', 'value' => 1));
 		}
 
 		// and finish with zero or more empty rows so we can add new data

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -227,23 +227,8 @@ abstract class Email_Driver
 			{
 				foreach ($images[2] as $i => $image_url)
 				{
-					// convert inline images to cid attachments
-					if (preg_match('/^data:image\/(.*);base64,\s(.*)$/', $image_url, $image))
-					{
-						// create a temp image for the attachmment
-						$file = strtolower(tempnam(sys_get_temp_dir(), 'inline-').'.'.$image[1]);
-						file_put_contents($file, base64_decode($image[2]));
-
-						// attach the temp file
-						$cid = 'cid:'.md5($file);
-						$this->attach($file, true, $cid);
-
-						// and remove it
-						unlink($file);
-						$html = preg_replace("/".$images[1][$i]."=\"".preg_quote($image_url, '/')."\"/Ui", $images[1][$i]."=\"".$cid."\"", $html);
-					}
 					// Don't attach absolute urls
-					elseif ( ! preg_match('/(^http\:\/\/|^https\:\/\/|^\/\/|^cid\:|^data\:|^#)/Ui', $image_url))
+					if ( ! preg_match('/(^http\:\/\/|^https\:\/\/|^\/\/|^cid\:|^data\:|^#)/Ui', $image_url))
 					{
 						$cid = 'cid:'.md5(pathinfo($image_url, PATHINFO_BASENAME));
 						if ( ! isset($this->attachments['inline'][$cid]))
@@ -317,18 +302,10 @@ abstract class Email_Driver
 	 */
 	public function from($email, $name = false)
 	{
-		if (is_array($email) and isset($email['email']) and isset($email['name']))
-		{
-			$this->config['from'] = $email;
-		}
-		else
-		{
-			$this->config['from']['email'] = (string) $email;
-			$this->config['from']['name']  = (is_string($name)) ? $name : false;
+		$this->config['from']['email'] = (string) $email;
+		$this->config['from']['name']  = (is_string($name)) ? $name : false;
 
-		}
-
-		if ($this->config['encode_headers'] and ! empty($this->config['from']['name']))
+		if ($this->config['encode_headers'] and $this->config['from']['name'])
 		{
 			$this->config['from']['name'] = $this->encode_mimeheader((string) $this->config['from']['name']);
 		}
@@ -466,30 +443,23 @@ abstract class Email_Driver
 			$email = (is_string($name)) ? array($email => $name) : array($email);
 		}
 
-		if (isset($email['name']) and isset($email['email']))
+		foreach ($email as $_email => $name)
 		{
-			$this->{$list}[$email['email']] = $email;
-		}
-		else
-		{
-			foreach ($email as $_email => $name)
+			if (is_numeric($_email))
 			{
-				if (is_numeric($_email))
-				{
-					$_email = $name;
-					$name = false;
-				}
-
-				if ($this->config['encode_headers'] and ! empty($name))
-				{
-					$name = $this->encode_mimeheader($name);
-				}
-
-				$this->{$list}[$_email] = array(
-					'name' => $name,
-					'email' => $_email,
-				);
+				$_email = $name;
+				$name = false;
 			}
+
+			if ($this->config['encode_headers'] and $name)
+			{
+				$name = $this->encode_mimeheader($name);
+			}
+
+			$this->{$list}[$_email] = array(
+				'name' => $name,
+				'email' => $_email,
+			);
 		}
 	}
 
@@ -850,23 +820,6 @@ abstract class Email_Driver
 			$this->set_header('Return-Path', $this->config['from']['email']);
 		}
 
-		if ( ! empty($this->config['force_to']))
-		{
-			foreach (array('to', 'cc', 'bcc', 'reply_to') as $list)
-			{
-				foreach ($this->{$list} as $index => $value)
-				{
-					$this->{$list}[$index]['email'] = $this->config['force_to'];
-				}
-			}
-			$this->set_header('Return-Path', $this->config['force_to']);
-
-			if (empty($this->reply_to))
-			{
-				$this->reply_to($this->config['force_to']);
-			}
-		}
-
 		if (($this instanceof Email_Driver_Mail) !== true)
 		{
 			if ( ! empty($this->to))
@@ -1085,7 +1038,6 @@ abstract class Email_Driver
 			case 'html':
 				return 'text/html';
 			case 'html_alt_attach':
-			case 'html_inline_attach':
 			case 'html_alt_inline_attach':
 				return 'multipart/mixed; '.$boundary;
 			case 'html_alt_inline':
@@ -1337,7 +1289,6 @@ abstract class Email_Driver
 	 */
 	protected static function generate_alt($html, $wordwrap, $newline)
 	{
-		$html = str_replace(array('<br />', '<br>'), array($newline, $newline), $html);
 		$html = preg_replace('/[ |	]{2,}/m', ' ', $html);
 		$html = trim(strip_tags(preg_replace('/<(head|title|style|script)[^>]*>.*?<\/\\1>/s', '', $html)));
 		$lines = explode($newline, $html);

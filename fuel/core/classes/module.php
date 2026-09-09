@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -57,9 +57,6 @@ class Module
 			return $result;
 		}
 
-		// unify the name
-		$module = ucfirst($module);
-
 		if (static::loaded($module))
 		{
 			return false;
@@ -95,7 +92,7 @@ class Module
 		}
 
 		// determine the module namespace
-		$ns = '\\'.$module;
+		$ns = '\\'.ucfirst($module);
 
 		// add the namespace to the autoloader
 		\Autoloader::add_namespaces(array(
@@ -122,9 +119,6 @@ class Module
 	 */
 	public static function unload($module)
 	{
-		// unify the name
-		$module = ucfirst($module);
-
 		// we can only unload a loaded module
 		if (isset(static::$modules[$module]))
 		{
@@ -173,48 +167,7 @@ class Module
 			return static::$modules;
 		}
 
-		// unify the name
-		$module = ucfirst($module);
-
 		return array_key_exists($module, static::$modules);
-	}
-
-	/**
-	 * Checks if the given module is installed, if no module is given then
-	 * all installed modules are returned.
-	 *
-	 * @param   string|null  $module  The module name or null
-	 * @return  bool|array  Whether the module is loaded, or all modules
-	 */
-	public static function installed($module = null)
-	{
-		// storage for installed modules
-		static $modules;
-
-		// enumerate the modules on first call
-		if (is_null($modules))
-		{
-			// loop through module paths
-			foreach (\Config::get('module_paths') as $path)
-			{
-				// get all modules installed in this path
-				foreach(new \GlobIterator(realpath($path).DS.'*') as $m)
-				{
-					$modules[] = $m->getBasename();
-				}
-			}
-		}
-
-		// return all modules if none is given
-		if ($module === null)
-		{
-			return $modules;
-		}
-
-		// unify the name
-		$module = strtolower($module);
-
-		return array_key_exists($module, $modules);
 	}
 
 	/**
@@ -225,9 +178,6 @@ class Module
 	 */
 	public static function exists($module)
 	{
-		// unify the name
-		$module = ucfirst($module);
-
 		if (array_key_exists($module, static::$modules))
 		{
 			return static::$modules[$module];

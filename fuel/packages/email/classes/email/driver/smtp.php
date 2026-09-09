@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -155,17 +155,7 @@ class Email_Driver_Smtp extends \Email_Driver
 		$context = stream_context_create();
 		if (is_array($this->config['smtp']['options']) and ! empty($this->config['smtp']['options']))
 		{
-			// PHP 8.3+
-			if (PHP_VERSION_ID >= 80300)
-			{
-				stream_context_set_options($context, $this->config['smtp']['options']);
-			}
-
-			// deprecated from PHP 8.4+
-			else
-			{
-				stream_context_set_option($context, $this->config['smtp']['options']);
-			}
+			stream_context_set_option($context, $this->config['smtp']['options']);
 		}
 
 		$this->smtp_connection = stream_socket_client(
@@ -267,7 +257,7 @@ class Email_Driver_Smtp extends \Email_Driver
 		}
 		catch(SmtpCommandFailureException $e)
 		{
-			throw new SmtpAuthenticationFailedException('Failed authentication.', 0, $e);
+			throw new SmtpAuthenticationFailedException('Failed authentication.');
 		}
 
 	}

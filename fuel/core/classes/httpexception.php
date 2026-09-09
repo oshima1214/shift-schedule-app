@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -29,6 +29,12 @@ abstract class HttpException extends \FuelException
 	{
 		// get the exception response
 		$response = $this->response();
+
+		// fire any app shutdown events
+		\Event::instance()->trigger('shutdown', '', 'none', true);
+
+		// fire any framework shutdown events
+		\Event::instance()->trigger('fuel-shutdown', '', 'none', true);
 
 		// send the response out
 		$response->send(true);
