@@ -28,27 +28,27 @@ namespace App\Support;
  */
 class Csrf
 {
-	/**
-	 * トークンを準備し、更新系リクエストなら検証する。
-	 *
-	 * @throws \HttpBadRequestException  検証に失敗した場合
-	 */
-	public static function prepare()
-	{
-		// 1. Cookieに既存トークンがあれば使い回す（無いときだけ新規発行してCookieに載せる）
-		\Security::set_token(false);
+  /**
+   * トークンを準備し、更新系リクエストなら検証する。
+   *
+   * @throws \HttpBadRequestException  検証に失敗した場合
+   */
+  public static function prepare()
+  {
+    // 1. Cookieに既存トークンがあれば使い回す（無いときだけ新規発行してCookieに載せる）
+    \Security::set_token(false);
 
-		$checked_methods = \Config::get('security.csrf_autoload_methods', array('post', 'put', 'delete'));
+    $checked_methods = \Config::get('security.csrf_autoload_methods', array('post', 'put', 'delete'));
 
-		if ( ! in_array(strtolower(\Input::method()), $checked_methods, true))
-		{
-			return;
-		}
+    if ( ! in_array(strtolower(\Input::method()), $checked_methods, true))
+    {
+      return;
+    }
 
-		// 2. 更新系リクエストはここで検証する
-		if ( ! \Security::check_token())
-		{
-			throw new \HttpBadRequestException('CSRFトークンの検証に失敗しました。');
-		}
-	}
+    // 2. 更新系リクエストはここで検証する
+    if ( ! \Security::check_token())
+    {
+      throw new \HttpBadRequestException('CSRFトークンの検証に失敗しました。');
+    }
+  }
 }

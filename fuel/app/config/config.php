@@ -226,12 +226,12 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		'csrf_autoload'            => false,
-		'csrf_autoload_methods'    => array('post', 'put', 'delete'),
-		'csrf_bad_request_on_fail' => true,
-		'csrf_auto_token'          => true,
-		// 'csrf_token_key'           => 'fuel_csrf_token',
-		// 'csrf_expiration'          => 0,
+		'csrf_autoload'                 => false,
+		'csrf_autoload_methods'         => array('post', 'put', 'delete'),
+		'csrf_bad_request_on_fail'      => true,
+		'csrf_auto_token'               => true,
+		// 'csrf_token_key'             => 'fuel_csrf_token',
+		// 'csrf_expiration'            => 0,
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -243,7 +243,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		'csrf_rotate' => false,
+		'csrf_rotate'                   => false,
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -251,7 +251,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		'token_salt' => 'change-this-salt-in-production-3f8a2c9e1b',
+		'token_salt'                    => 'change-this-salt-in-production-3f8a2c9e1b',
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -265,7 +265,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		// 'allow_x_headers' => false,
+		// 'allow_x_headers'            => false,
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -277,9 +277,9 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		'uri_filter' => array('htmlentities'),
+		'uri_filter'                    => array('htmlentities'),
 
-		// 'input_filter' => array(),
+		// 'input_filter'               => array(),
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -291,7 +291,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		'output_filter' => array('Security::htmlentities'),
+		'output_filter'                 => array('Security::htmlentities'),
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -299,7 +299,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		// 'htmlentities_flags' => ENT_QUOTES,
+		// 'htmlentities_flags'         => ENT_QUOTES,
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -315,7 +315,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		// 'auto_filter_output' => true,
+		// 'auto_filter_output'         => true,
 
 		/**
 		 * ---------------------------------------------------------------------
@@ -325,7 +325,7 @@ return array(
 		 * ---------------------------------------------------------------------
 		 */
 
-		'whitelisted_classes' => array(
+		'whitelisted_classes'           => array(
 			'Fuel\\Core\\Presenter',
 			'Fuel\\Core\\Response',
 			'Fuel\\Core\\View',
