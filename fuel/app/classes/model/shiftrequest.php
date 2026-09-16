@@ -226,4 +226,55 @@ class ShiftRequest
 
     return $found;
   }
+
+  /**
+   * 日別の人員サマリを作る。
+   * 確定した出勤者が0人の日をひと目で分かるようにするのが目的。
+   *
+   * 同じ週のデータは呼び出し側で取得済みのため、SQLのGROUP BYではなく
+   * その配列をPHPで数える。問い合わせを増やさないための判断。
+   *
+   * @param array $days      Week::days() の7日分
+   * @param array $requests  その週のシフト希望
+   * @return array
+   */
+  public static function summarize_by_date(array $days, array $requests)
+  {
+    // 日付ごとに状態を数える
+    $counts = array();
+    foreach ($days as $day)
+    {
+      $counts[$day['date']] = array('approved' => 0, 'requested' => 0, 'rejected' => 0);
+    }
+
+    foreach ($requests as $request)
+    {
+      $date   = $request['work_date'];
+      $status = $request['status'];
+
+      if (isset($counts[$date]) and isset($counts[$date][$status]))
+      {
+        $counts[$date][$status]++;
+      }
+    }
+
+    $summary = array();
+    foreach ($days as $day)
+    {
+      $count = $counts[$day['date']];
+
+      $summary[] = array(
+        'date'      => $day['date'],
+        'label'     => $day['label'],
+        'dow'       => $day['dow'],
+        'approved'  => $count['approved'],
+        'requested' => $count['requested'],
+        'rejected'  => $count['rejected'],
+        // 確定した出勤者がいない日は警告として扱う
+        'is_zero'   => $count['approved'] === 0,
+      );
+    }
+
+    return $summary;
+  }
 }

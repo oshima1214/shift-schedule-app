@@ -12,6 +12,7 @@
   'employee'         => $employee,
   'employment_label' => $employment_label,
   'active'           => 'account',
+  'menu'             => $menu,
 )); ?>
 
 <div class="wrap narrow">

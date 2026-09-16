@@ -14,6 +14,7 @@
   'employee'         => $employee,
   'employment_label' => $employment_label,
   'active'           => 'shift',
+  'menu'             => $menu,
 )); ?>
 
 <div class="wrap">

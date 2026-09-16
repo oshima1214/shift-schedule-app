@@ -14,6 +14,7 @@
   'employee'         => $employee,
   'employment_label' => '',
   'active'           => 'employee',
+  'menu'             => $menu,
 )); ?>
 
 <div class="wrap">

@@ -1,27 +1,9 @@
 <?php
 /**
- * 共通ヘッダ。$employee（ログイン中の従業員）と $active（現在の画面）を受け取る。
- * 管理者にだけ管理メニューを出すが、実際の制限は各コントローラのbefore()で行う。
+ * 共通ヘッダ。
+ * $menu（Controller_Base::nav_menu() が組み立てたもの）、
+ * $employee（ログイン中の従業員）、$active（現在の画面）を受け取って出力するだけ。
  */
-$menu = array();
-
-if ($employee['role'] === 'admin')
-{
-  $menu = array(
-    'request'  => array('url' => 'request',  'label' => 'シフト希望一覧'),
-    'schedule' => array('url' => 'schedule', 'label' => 'シフト表確定'),
-    'employee' => array('url' => 'employee', 'label' => '従業員管理'),
-  );
-}
-else
-{
-  $menu = array(
-    'shift' => array('url' => 'shift', 'label' => 'シフト希望入力'),
-  );
-}
-
-// パスワード変更は権限によらず本人が使う
-$menu['account'] = array('url' => 'account/password', 'label' => 'パスワード変更');
 ?>
 <header class="appbar">
   <div class="appbar-inner">

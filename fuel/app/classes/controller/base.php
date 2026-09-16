@@ -59,6 +59,37 @@ class Controller_Base extends \Controller
   }
 
   /**
+   * ヘッダに出すメニューを組み立てる。
+   *
+   * 表示するだけのビューに権限の判定を持たせないよう、ここで作って渡す。
+   * ここで隠しても各コントローラの before() で必ず権限を確認している。
+   *
+   * @return array  array('キー' => array('url' => ..., 'label' => ...), ...)
+   */
+  protected function nav_menu()
+  {
+    if ($this->current_employee['role'] === 'admin')
+    {
+      $menu = array(
+        'request'  => array('url' => 'request',  'label' => 'シフト希望一覧'),
+        'schedule' => array('url' => 'schedule', 'label' => 'シフト表確定'),
+        'employee' => array('url' => 'employee', 'label' => '従業員管理'),
+      );
+    }
+    else
+    {
+      $menu = array(
+        'shift' => array('url' => 'shift', 'label' => 'シフト希望入力'),
+      );
+    }
+
+    // パスワード変更は権限によらず本人が使う
+    $menu['account'] = array('url' => 'account/password', 'label' => 'パスワード変更');
+
+    return $menu;
+  }
+
+  /**
    * 管理者専用画面で呼ぶ。画面で隠すだけでなくサーバ側で必ず確認する。
    *
    * @throws HttpNoAccessException
