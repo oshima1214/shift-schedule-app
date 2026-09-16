@@ -27,6 +27,11 @@ class Controller_Auth extends \Controller
     $response->set_header('Cache-Control', 'no-store, no-cache, must-revalidate');
     $response->set_header('Pragma', 'no-cache');
 
+    // クリックジャッキング対策。iframeへの埋め込みを一切許可しない。
+    $response->set_header('X-Frame-Options', 'DENY');
+    // Content-Typeを無視した内容の推測を止めさせる
+    $response->set_header('X-Content-Type-Options', 'nosniff');
+
     return $response;
   }
 
