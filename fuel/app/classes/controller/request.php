@@ -16,6 +16,7 @@ class Controller_Request extends Controller_Base
   {
     $view = \View::forge('request/index');
     $view->set('employee', $this->current_employee);
+    $view->set('menu', $this->nav_menu());
     $view->set('departments', \App\Model\Department::find_all());
 
     return \Response::forge($view);

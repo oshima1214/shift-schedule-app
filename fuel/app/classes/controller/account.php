@@ -22,6 +22,7 @@ class Controller_Account extends Controller_Base
 
     $view = \View::forge('account/password');
     $view->set('employee', $this->current_employee);
+    $view->set('menu', $this->nav_menu());
     // 管理者に雇用形態を出しても意味がないため、他の管理画面と同じく空にする
     $view->set('employment_label', $this->current_employee['role'] === 'admin'
       ? ''

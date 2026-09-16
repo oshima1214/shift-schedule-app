@@ -17,6 +17,7 @@ class Controller_Schedule extends Controller_Base
   {
     $view = \View::forge('schedule/index');
     $view->set('employee', $this->current_employee);
+    $view->set('menu', $this->nav_menu());
     $view->set('departments', \App\Model\Department::find_all());
     $view->set('statuses', \Config::get('shift.status'));
     $view->set('reason_max_length', (int) \Config::get('shift.reject_reason_max_length'));
@@ -85,7 +86,7 @@ class Controller_Schedule extends Controller_Base
       'next_week' => (clone $monday)->modify('+7 days')->format('Y-m-d'),
       'days'      => $days,
       'rows'      => $rows,
-      'summary'   => static::build_summary($days, $requests),
+      'summary'   => \App\Model\ShiftRequest::summarize_by_date($days, $requests),
     ));
   }
 
@@ -243,53 +244,5 @@ class Controller_Schedule extends Controller_Base
     }
 
     return array_values($ids);
-  }
-
-  /**
-   * 日別の人員サマリを作る。
-   * 確定した出勤者が0人の日をひと目で分かるようにするのが目的。
-   *
-   * @param array $days      Week::days() の7日分
-   * @param array $requests  その週のシフト希望
-   * @return array
-   */
-  private static function build_summary(array $days, array $requests)
-  {
-    // 日付ごとに状態を数える
-    $counts = array();
-    foreach ($days as $day)
-    {
-      $counts[$day['date']] = array('approved' => 0, 'requested' => 0, 'rejected' => 0);
-    }
-
-    foreach ($requests as $request)
-    {
-      $date   = $request['work_date'];
-      $status = $request['status'];
-
-      if (isset($counts[$date]) and isset($counts[$date][$status]))
-      {
-        $counts[$date][$status]++;
-      }
-    }
-
-    $summary = array();
-    foreach ($days as $day)
-    {
-      $count = $counts[$day['date']];
-
-      $summary[] = array(
-        'date'      => $day['date'],
-        'label'     => $day['label'],
-        'dow'       => $day['dow'],
-        'approved'  => $count['approved'],
-        'requested' => $count['requested'],
-        'rejected'  => $count['rejected'],
-        // 確定した出勤者がいない日は警告として扱う
-        'is_zero'   => $count['approved'] === 0,
-      );
-    }
-
-    return $summary;
   }
 }

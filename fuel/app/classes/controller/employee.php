@@ -18,6 +18,7 @@ class Controller_Employee extends Controller_Base
 
     $view = \View::forge('employee/index');
     $view->set('employee', $this->current_employee);
+    $view->set('menu', $this->nav_menu());
     $view->set('departments', $departments);
     // 新規登録フォームの初期選択。ビュー側でDOMの並び順に頼らないよう、ここで決める。
     $view->set('default_department_id', $departments ? (string) $departments[0]['id'] : '');
