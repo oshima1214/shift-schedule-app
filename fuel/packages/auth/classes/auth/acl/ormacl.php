@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -81,14 +81,9 @@ class Auth_Acl_Ormacl extends \Auth_Acl_Driver
 			$rights = (array) $matches[1];
 			$actions = explode(',', $matches[2]);
 		}
-		elseif ($condition[1])
-		{
-			$rights  = (array) $condition[1];
-			$actions = array();
-		}
 		else
 		{
-			$rights  = array();
+			$rights  = (array) $condition[1];
 			$actions = array();
 		}
 

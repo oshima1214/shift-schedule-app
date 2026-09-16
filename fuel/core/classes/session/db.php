@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -200,7 +200,6 @@ class Session_Db extends \Session_Driver
 				{
 					// create the new session record
 					list($notused, $result) = \DB::insert($this->config['table'], array_keys($session))->values($session)->execute($this->config['database']);
-					$this->record = \DB::select()->where('session_id', '=', $this->keys['session_id'])->from($this->config['table'])->execute($this->config['database']);
 				}
 				else
 				{
@@ -233,10 +232,6 @@ class Session_Db extends \Session_Driver
 							$result = false;
 						}
 					}
-					else
-					{
-						$this->record = \DB::select()->where('session_id', '=', $this->keys['session_id'])->from($this->config['table'])->execute($this->config['database']);
-					}
 				}
 
 				// update went well?
@@ -253,13 +248,10 @@ class Session_Db extends \Session_Driver
 			{
 				// strip the actual query from the message
 				$msg = $e->getMessage();
-				if ($e->getDbCode())
-				{
-					$msg = substr($msg, 0, strlen($msg)  - strlen(strrchr($msg, ':')));
-				}
+				$msg = substr($msg, 0, strlen($msg)  - strlen(strrchr($msg, ':')));
 
 				// and rethrow it
-				throw new \Database_Exception($msg, $e->getCode(), $e, $e->getDbCode());
+				throw new \Database_Exception($msg, $e->getCode(), $e, $e->GetDbCode());
 			}
 		}
 

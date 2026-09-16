@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -22,11 +22,6 @@ class BelongsTo extends Relation
 
 	public function __construct($from, $name, array $config)
 	{
-		if (call_user_func_array(array($from, 'property'), array($name)))
-		{
-			throw new \FuelException(sprintf('"%s" is defined as both a property and a belongsto relation in model %s', $name, $from));
-		}
-
 		$this->name        = $name;
 		$this->model_from  = $from;
 		$this->model_to    = array_key_exists('model_to', $config)
@@ -38,29 +33,10 @@ class BelongsTo extends Relation
 		$this->conditions  = array_key_exists('conditions', $config)
 			? (array) $config['conditions'] : array();
 
-		// DEPRECATED SINCE 1.9
-		$this->cascade_delete  = array_key_exists('cascade_delete', $config)
-			? $config['cascade_delete'] : $this->cascade_delete;
-
-		if (array_key_exists('constraint', $config) and in_array($config['constraint'], $this->valid_constraints))
-		{
-			switch($config['constraint'])
-			{
-				case static::CONSTRAINT_RESTRICT:
-					$this->cascade_check = true;
-					break;
-				case static::CONSTRAINT_CASCADE:
-					$this->cascade_delete = true;
-					break;
-				case static::CONSTRAINT_SETDEFAULT:
-					$this->cascade_delete = false;
-					break;
-				default:
-			}
-		}
-
 		$this->cascade_save    = array_key_exists('cascade_save', $config)
 			? $config['cascade_save'] : $this->cascade_save;
+		$this->cascade_delete  = array_key_exists('cascade_delete', $config)
+			? $config['cascade_delete'] : $this->cascade_delete;
 
 		if ( ! class_exists($this->model_to))
 		{
@@ -227,39 +203,24 @@ class BelongsTo extends Relation
 		}
 	}
 
-	public function delete($model_from, $parent_deleted, $cascade)
+	public function delete($model_from, $model_to, $parent_deleted, $cascade)
 	{
-		// fetch all related records
-		$model_from->get($this->name);
-
 		if ( ! $parent_deleted)
 		{
-			if ($this->cascade_check and ! empty($model_from->{$this->name}))
-			{
-				throw new \Orm\DeleteConstraintViolation($this->name);
-			}
-
 			return;
 		}
 
-		// break current relations, may be incomplete
+		// break current relations
 		$model_from->unfreeze();
-
 		$rels = $model_from->_relate();
-		unset($rels[$this->name]);
+		$rels[$this->name] = null;
 		$model_from->_relate($rels);
-
 		$model_from->freeze();
 
 		$cascade = is_null($cascade) ? $this->cascade_delete : (bool) $cascade;
-
-		if ($cascade)
+		if ($cascade and ! empty($model_to))
 		{
-			if ( ! empty($model_from->{$this->name}))
-			{
-				// yes, delete the reclated records
-				$model_from->{$this->name}->delete();
-			}
+			$model_to->delete();
 		}
 	}
 }

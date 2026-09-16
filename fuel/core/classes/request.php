@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -272,7 +272,7 @@ class Request
 	public function __construct($uri, $route = true, $method = null)
 	{
 		// store the raw request uri so input can access it
-		$this->uri = empty($uri) ? $uri : ltrim(parse_url($uri,  \PHP_URL_PATH), '/');
+		$this->uri = $uri;
 
 		// forge a new input instance for this request
 		$this->input = \Input::forge($this, static::$active ? static::$active->input() : null);
@@ -356,7 +356,7 @@ class Request
 		$this->method_params = $this->route->method_params;
 		$this->named_params = $this->route->named_params;
 
-		if ( ! empty($this->route->module))
+		if ($this->route->module !== null)
 		{
 			$this->add_path(\Module::exists($this->module));
 		}
@@ -382,7 +382,7 @@ class Request
 
 		if (\Fuel::$profiling)
 		{
-			\Profiler::mark(__METHOD__.': Start of request for /'.$this->uri->get());
+			\Profiler::mark(__METHOD__.': Start of '.$this->uri->get());
 		}
 
 		logger(\Fuel::L_INFO, 'Called', __METHOD__);
@@ -521,7 +521,7 @@ class Request
 
 		if (\Fuel::$profiling)
 		{
-			\Profiler::mark(__METHOD__.': End of request for /'.$this->uri->get());
+			\Profiler::mark(__METHOD__.': End of '.$this->uri->get());
 		}
 
 		static::reset_request();
@@ -706,23 +706,15 @@ class Request
 	 */
 	public function add_path($path, $prefix = false)
 	{
-		// unify and verify the path
-		if ($realpath = realpath($path).DS)
+		if ($prefix)
 		{
-			if ($prefix)
-			{
-				// prefix the path to the paths array
-				array_unshift($this->paths, $realpath);
-			}
-			else
-			{
-				// add the new path
-				$this->paths[] = $realpath;
-			}
+			// prefix the path to the paths array
+			array_unshift($this->paths, $path);
 		}
 		else
 		{
-			throw new \FuelException(sprintf('Path "%s" does not exist', $path));
+			// add the new path
+			$this->paths[] = $path;
 		}
 	}
 

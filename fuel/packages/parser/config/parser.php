@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -36,7 +36,6 @@ return array(
 		'smarty'   => 'View_Smarty',
 		'phptal'   => 'View_Phptal',
 		'lex'      => 'View_Lex',
-		'plates'   => array('class' => 'View_Plates', 'extension' => 'tpl'),
 	),
 
 	// ------------------------------------------------------------------------
@@ -82,7 +81,7 @@ return array(
 	// Uses > 1.1.1 (Master branch ATM)
 	// ------------------------------------------------------------------------
 	'View_HamlTwig' => array(
-		'include'   => APPPATH.'vendor'.DS.'MtHaml'.DS.'Autoloader.php',
+		//'include'   => APPPATH.'vendor'.DS.'MtHaml'.DS.'Autoloader.php',
 		'auto_encode' => true,
 		'environment' => array(
 			'auto_escaper' => true,
@@ -206,15 +205,6 @@ return array(
 			'flags'           => class_exists('LightnCandy\LightnCandy') ? LightnCandy\LightnCandy::FLAG_ERROR_EXCEPTION | LightnCandy\LightnCandy::FLAG_ELSE | LightnCandy\LightnCandy::FLAG_HBESCAPE | LightnCandy\LightnCandy::FLAG_JS : 0,
 			'helpers'         => array(),
 			'helperresolver'  => function($cx, $name) { return; },
-		),
-	),
-
-	// PLATES ( http://platesphp.com )
-	// ------------------------------------------------------------------------
-	'View_Plates' => array(
-
-		// plates extensions, either class names or ExtensionInterface instances
-		'extensions' => array(
 		),
 	),
 

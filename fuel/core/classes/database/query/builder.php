@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -195,7 +195,7 @@ abstract class Database_Query_Builder extends \Database_Query
 		{
 			list($column, $direction) = $group;
 
-			$direction = strtoupper( (string) $direction);
+			$direction = strtoupper($direction);
 			if ( ! empty($direction))
 			{
 				// Make the direction uppercase

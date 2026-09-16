@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -109,10 +109,7 @@ class Config_Php extends \Config_File
 <?php
 
 CONF;
-
-		$contents = preg_replace("/=> \n(.*)array \(/", "=> array($1", var_export($contents, true));
-
-		$output .= 'return '.str_replace(array('\''.APPPATH, '\''.DOCROOT, '\''.COREPATH, '\''.PKGPATH), array('APPPATH.\'', 'DOCROOT.\'', 'COREPATH.\'', 'PKGPATH.\''), $contents).";\n";
+		$output .= 'return '.str_replace(array('array ('.PHP_EOL, '\''.APPPATH, '\''.DOCROOT, '\''.COREPATH, '\''.PKGPATH), array('array('.PHP_EOL, 'APPPATH.\'', 'DOCROOT.\'', 'COREPATH.\'', 'PKGPATH.\''), var_export($contents, true)).";\n";
 		return $output;
 	}
 }

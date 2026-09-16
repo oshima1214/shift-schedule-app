@@ -3,16 +3,16 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
 namespace Fuel\Core;
 
-abstract class Database_Schema
+class Database_Schema
 {
 	/**
 	 * @var  Database_Connection  database connection instance
@@ -158,15 +158,6 @@ abstract class Database_Schema
 
 		return $this->_connection->query(\DB::DELETE, $sql, false);
 	}
-
-	/**
-	 * Generic check if a given database exists.
-	 *
-	 * @throws  \Database_Exception
-	 * @param   string  $table  Table name
-	 * @return  bool
-	 */
-	abstract public function database_exists($database);
 
 	/**
 	 * Generic check if a given table exists.
@@ -578,18 +569,11 @@ abstract class Database_Schema
 			$_prefix = $prefix;
 			if(array_key_exists('NAME', $attr) and $field !== $attr['NAME'] and $_prefix === 'MODIFY ')
 			{
-				$_prefix = count($attr) == 1 ? 'RENAME COLUMN ' : 'CHANGE ';
+				$_prefix = 'CHANGE ';
 			}
 			$sql = "\n\t".$_prefix;
 			$sql .= $this->_connection->quote_identifier($field);
-			if ($_prefix == 'CHANGE ')
-			{
-				$sql .= ' '.$this->_connection->quote_identifier($attr['NAME']).' ';
-			}
-			elseif ($_prefix == 'RENAME COLUMN ')
-			{
-				$sql .= ' TO '.$this->_connection->quote_identifier($attr['NAME']).' ';
-			}
+			$sql .= (array_key_exists('NAME', $attr) and $attr['NAME'] !== $field) ? ' '.$this->_connection->quote_identifier($attr['NAME']).' ' : '';
 			$sql .= array_key_exists('TYPE', $attr) ? ' '.$attr['TYPE'] : '';
 
 			if(array_key_exists('CONSTRAINT', $attr))
@@ -609,7 +593,7 @@ abstract class Database_Schema
 				}
 			}
 
-			$sql .= array_key_exists('CHARSET', $attr) ? $this->process_charset($attr['CHARSET'], false, array_key_exists('COLLATE', $attr) ? $attr['COLLATE'] : null) : '';
+			$sql .= array_key_exists('CHARSET', $attr) ? $this->process_charset($attr['CHARSET'], false) : '';
 
 			if (array_key_exists('UNSIGNED', $attr) and $attr['UNSIGNED'] === true)
 			{
@@ -625,7 +609,7 @@ abstract class Database_Schema
 			{
 				$sql .= ' NULL';
 			}
-			elseif ($_prefix != 'RENAME COLUMN ')
+			else
 			{
 				$sql .= ' NOT NULL';
 			}

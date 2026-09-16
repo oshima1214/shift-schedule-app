@@ -1,16 +1,57 @@
 # shift-schedule-app
 アルバイト・パートのシフト希望をもとにシフト表を作成するWebアプリ（PHP / FuelPHP + knockout.js）
 
-## セットアップ
+## セットアップ（Docker）
 
-1. `fuel/app/config/development/db.php` にMySQLの接続情報を設定する（gitignore対象、各自ローカルで作成）。
-2. マイグレーションでテーブルを作成する。デモ用の部署・従業員・シフト希望も同時に投入される。
+開発環境はDockerで構築する。ホスト側にPHPやMySQLを入れる必要はない。
+
+1. `docker` ディレクトリに移動する。
 
    ```
-   php oil refine migrate
+   cd docker
+   ```
+
+2. イメージをビルドしてコンテナを起動する。
+
+   ```
+   docker-compose build
+   docker-compose up -d
+   ```
+
+3. `fuel/app/config/development/db.php` を作成する（gitignore対象、各自ローカルで作成）。
+   接続先はホストではなく `db` サービスを指す。
+
+   ```php
+   return array(
+       'default' => array(
+           'connection' => array(
+               'dsn'      => 'mysql:host=db;port=3306;dbname=shift_schedule_app;charset=utf8mb4',
+               'username' => 'root',
+               'password' => 'root',
+           ),
+       ),
+   );
+   ```
+
+4. コンテナ内でマイグレーションを実行する。デモ用の部署・従業員・シフト希望も同時に投入される。
+
+   ```
+   docker exec -w /var/www/html/my_fuel_project fuelphp-app php oil refine migrate
    ```
 
    テーブル定義の参照用に `db/schema.sql` を置いている（実際の作成はマイグレーション）。
+
+5. ブラウザで http://localhost/ を開くとログイン画面が表示される。
+
+### 構成
+
+| サービス | 内容 | ホスト側ポート |
+| --- | --- | --- |
+| app | PHP 7.3 + Apache（`fuelphp-app`） | 80 |
+| db | MySQL 8.0（root / root） | 3306 |
+
+プロジェクトルートはコンテナ内の `/var/www/html/my_fuel_project` にマウントされる。
+ホスト側でファイルを編集すればそのまま反映されるため、コンテナの再起動は不要。
 
 ### デモ用アカウント
 
@@ -23,17 +64,43 @@
 
 シフト希望のデモデータは「今週の月曜」を起点に投入されるため、いつ実行しても初回表示で見える。
 
-## ローカル起動（PHP組み込みサーバ）
+### DBの中身を確認する（HeidiSQL）
 
-Apacheの`.htaccess`相当の書き換えを行う `router.php` を経由して起動する。
+テーブルやデータの確認にはHeidiSQLを使う。dbコンテナはホストの3306番に公開しているので、ホスト側から直接繋げる。
+
+| 項目 | 値 |
+| --- | --- |
+| ネットワーク種別 | MariaDB or MySQL (TCP/IP) |
+| ホスト名 / IP | `127.0.0.1` |
+| ポート | `3306` |
+| ユーザー / パスワード | `root` / `root` |
+| データベース | `shift_schedule_app` |
+
+アプリコンテナからは `db:3306`、HeidiSQLなどホストのツールからは `127.0.0.1:3306` と、経路によって指定するホスト名が変わる点に注意する。
+
+スキーマ変更はHeidiSQLのGUIからではなく、必ずマイグレーション（`fuel/app/migrations`）で行い、`db/schema.sql` を合わせて更新する。
+
+## よく使うコマンド
+
+いずれも `docker` ディレクトリで実行する。
+
+| 目的 | コマンド |
+| --- | --- |
+| 起動 / 停止 | `docker-compose up -d` / `docker-compose down` |
+| アクセスログ | `docker-compose logs -f app` |
+| コンテナに入る | `docker exec -it fuelphp-app bash` |
+| oilコマンド | `docker exec -w /var/www/html/my_fuel_project fuelphp-app php oil ...` |
+
+FuelPHPのエラーログは `fuel/app/logs/年/月/日.php` に出る。リアルタイムで見るには次を実行する。
 
 ```
-php -S 127.0.0.1:8080 -t public router.php
+docker exec -it fuelphp-app tail -f /var/www/html/my_fuel_project/fuel/app/logs/2026/09/09.php
 ```
 
-`-t public` を付け忘れると、CSSやfavicon等の静的ファイルが404になる。
+`docker-compose down` するとDBコンテナのデータも消えるため、次回起動時はマイグレーションを再実行する。
+デモデータごと作り直したい場合はこれが手軽だが、データを残したい場合は `down` せず `stop` を使う。
 
-ブラウザで http://127.0.0.1:8080/ を開くとログイン画面が表示される。
+なお `router.php` はDocker移行前にPHP組み込みサーバで動かすためのもので、現在は使っていない。
 
 ## 画面構成
 

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -96,7 +96,6 @@ return array(
 	'cookie_domain'    => '',
 	'cookie_path'      => '/',
 	'cookie_http_only' => null,
-	'cookie_same_site' => null,
 
 	/**
 	 * -------------------------------------------------------------------------

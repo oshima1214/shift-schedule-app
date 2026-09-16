@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -44,12 +44,11 @@ class Finder
 	 * @param   string  $ext       File extension
 	 * @param   bool    $multiple  Whether to find multiple files
 	 * @param   bool    $cache     Whether to cache this path or not
-	 * @param   bool    $appfirst  Whether to search app or modules first
 	 * @return  mixed  Path, or paths, or false
 	 */
-	public static function search($dir, $file, $ext = '.php', $multiple = false, $cache = true, $appfirst = false)
+	public static function search($dir, $file, $ext = '.php', $multiple = false, $cache = true)
 	{
-		return static::instance()->locate($dir, $file, $ext, $multiple, $cache, $appfirst);
+		return static::instance()->locate($dir, $file, $ext, $multiple, $cache);
 	}
 
 	/**
@@ -295,10 +294,9 @@ class Finder
 	 * @param   string  $ext       File extension
 	 * @param   bool    $multiple  Whether to find multiple files
 	 * @param   bool    $cache     Whether to cache this path or not
-	 * @param   bool    $appfirst  Whether to search app or modules first
 	 * @return  mixed  Path, or paths, or false
 	 */
-	public function locate($dir, $file, $ext = '.php', $multiple = false, $cache = true, $appfirst = false)
+	public function locate($dir, $file, $ext = '.php', $multiple = false, $cache = true)
 	{
 		$found = $multiple ? array() : false;
 
@@ -337,38 +335,7 @@ class Finder
 
 		// If a filename contains a :: then it is trying to be found in a namespace.
 		// This is sometimes used to load a view from a non-loaded module.
-		$pos = strripos($file, '::');
-
-		// regular name
-		if ($pos === false)
-		{
-			$paths = $this->paths;
-
-			// get extra information of the active request
-			if (class_exists('Request', false) and ($request = \Request::active()))
-			{
-				$request->module and $cache_id .= $request->module;
-				if ($appfirst)
-				{
-					\Arr::insert_after_value($paths, $request->get_paths(), APPPATH);
-				}
-				else
-				{
-					$paths = array_merge($request->get_paths(), $paths);
-				}
-			}
-		}
-
-		// :: without a namespace, load from the app namespace only
-		elseif ($pos === 0)
-		{
-			$paths = $this->paths;
-
-			$file = substr($file, 2);
-		}
-
-		// namespaced file
-		else
+		if ($pos = strripos($file, '::'))
 		{
 			// get the namespace path
 			if ($path = \Autoloader::namespace_path('\\'.ucfirst(substr($file, 0, $pos))))
@@ -381,9 +348,16 @@ class Finder
 				// strip the namespace from the filename
 				$file = substr($file, $pos + 2);
 			}
-			else
+		}
+		else
+		{
+			$paths = $this->paths;
+
+			// get extra information of the active request
+			if (class_exists('Request', false) and ($request = \Request::active()))
 			{
-				$file = substr($file, 2);
+				$request->module and $cache_id .= $request->module;
+				$paths = array_merge($request->get_paths(), $paths);
 			}
 		}
 
@@ -527,10 +501,9 @@ class Finder
 					try
 					{
 						// Cache has expired
-						clearstatcache(true, $dir.$file);
-						is_file($dir.$file) and unlink($dir.$file);
+						unlink($dir.$file);
 					}
-					catch (\Exception $e)
+					catch (Exception $e)
 					{
 						// Cache has mostly likely already been deleted,
 						// let return happen normally.
@@ -548,18 +521,7 @@ class Finder
 			mkdir($dir, \Config::get('file.chmod.folders', 0777), true);
 
 			// Set permissions (must be manually set to fix umask issues)
-			try
-			{
-				chmod($dir, \Config::get('file.chmod.folders', 0777));
-			}
-			catch (\PhpErrorException $e)
-			{
-				// if we get something else then a chmod error, bail out
-				if (substr($e->getMessage(), 0, 8) !== 'chmod():')
-				{
-					throw new $e;
-				}
-			}
+			chmod($dir, \Config::get('file.chmod.folders', 0777));
 		}
 
 		// Force the data to be a string

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -92,30 +92,6 @@ class Auth_Permission extends \Orm\Model
 		'Orm\\Observer_Self' => array(
 			'events' => array('before_insert', 'before_update'),
 			'property' => 'user_id',
-		),
-	);
-
-	/**
-	 * @var array	has_many relationships
-	 */
-	protected static $_has_many = array(
-		'userpermission' => array(
-			'model_to' => 'Model\\Auth_Userpermission',
-			'key_from' => 'id',
-			'key_to'   => 'user_id',
-			'cascade_delete' => true,
-		),
-		'grouppermission' => array(
-			'model_to' => 'Model\\Auth_Grouppermission',
-			'key_from' => 'id',
-			'key_to'   => 'group_id',
-			'cascade_delete' => true,
-		),
-		'rolepermission' => array(
-			'model_to' => 'Model\\Auth_Rolepermission',
-			'key_from' => 'id',
-			'key_to'   => 'role_id',
-			'cascade_delete' => true,
 		),
 	);
 

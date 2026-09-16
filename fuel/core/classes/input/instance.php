@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -82,22 +82,13 @@ class Input_Instance
 	/**
 	 *
 	 */
-	public function __construct($new = null, $input = null)
+	public function __construct(Request $new = null, Input_Instance $input = null)
 	{
-		// new must be a nullable Request instance
-		if ( ! is_null($new) and ! $new instanceOf Request)
-		{
-			throw new \FuelException(__FUNCTION__ . ': Argument #1 ($new) must be an instance of Request, ' . gettype($new) . ' given');
-		}
-
-		// input must be a nullable Input_Instance instance
-		if ( ! is_null($input) and ! $input instanceOf Input_Instance)
-		{
-			throw new \FuelException(__FUNCTION__ . ': Argument #2 ($input) must be an instance of Input_Instance, ' . gettype($input) . ' given');
-		}
-
 		// store the associated request
 		$this->request = $new;
+
+		// get php raw input
+		$this->raw_input = file_get_contents('php://input');
 
 		// was an input instance passed?
 		if ($input)
@@ -113,9 +104,6 @@ class Input_Instance
 		}
 		else
 		{
-			// uri detection
-			$this->uri();
-
 			// fetch global input data
 			$this->hydrate();
 		}
@@ -189,14 +177,14 @@ class Input_Instance
 		}
 
 		// Remove the base URL from the URI
-		$base_url = parse_url((string) \Config::get('base_url', ''), PHP_URL_PATH);
+		$base_url = parse_url(\Config::get('base_url'), PHP_URL_PATH);
 		if ($uri !== '' and $base_url !== '' and strncmp($uri, $base_url, strlen($base_url)) === 0)
 		{
 			$uri = substr($uri, strlen($base_url) - 1);
 		}
 
 		// If we are using an index file (not mod_rewrite) then remove it
-		$index_file = \Config::get('index_file', false);
+		$index_file = \Config::get('index_file');
 		if ($index_file and strncmp($uri, $index_file, strlen($index_file)) === 0)
 		{
 			$uri = substr($uri, strlen($index_file));
@@ -211,7 +199,7 @@ class Input_Instance
 
 		// in case of incorrect rewrites, we may need to cleanup and
 		// recreate the QUERY_STRING and $_GET
-		if (strpos($uri, '?') !== false or array_key_exists($uri, $_GET))
+		if (strpos($uri, '?') !== false)
 		{
 			// log this issue
 			\Log::write(\Fuel::L_DEBUG, 'Your rewrite rules are incorrect, change "index.php?/$1 [QSA,L]" to "index.php/$1 [L]"!');
@@ -340,20 +328,6 @@ class Input_Instance
 	 */
 	public function raw()
 	{
-		// we need to read the input only once
-		static $raw_input;
-
-		if ($raw_input === null)
-		{
-			$raw_input = file_get_contents('php://input');
-		}
-
-		if ($this->raw_input === null)
-		{
-			// get php raw input stored earlier
-			$this->raw_input = $raw_input;
-		}
-
 		return $this->raw_input;
 	}
 
@@ -473,7 +447,7 @@ class Input_Instance
 		$method = strtolower($this->method());
 
 		// get the content type from the header, strip optional parameters
-		$content_header = \Input::headers('Content-Type', '');
+		$content_header = \Input::headers('Content-Type');
 		if (($content_type = strstr($content_header, ';', true)) === false)
 		{
 			$content_type = $content_header;

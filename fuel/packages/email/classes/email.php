@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -60,17 +60,6 @@ class Email
 
 		$setup = \Arr::merge(static::$_defaults, $setup);
 		$config = \Arr::merge($setup, $config);
-
-		// fix missing newline characters
-		if (empty($config['newline']))
-		{
-			$config['newline'] = "\n";
-		}
-		//  or newline characters defined as string instead of binary
-		else
-		{
-			$config['newline'] = str_replace(array('\n', '\r', '\r\n'), array("\n", "\r", "\r\n"), $config['newline']);
-		}
 
 		$driver = '\\Email_Driver_'.ucfirst(strtolower($config['driver']));
 

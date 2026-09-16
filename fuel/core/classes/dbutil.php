@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -208,7 +208,7 @@ class DBUtil
 	 * @static
 	 * @param   string  $table
 	 * @param   string  $index_name
-	 * @param   string|array  $index_columns
+	 * @param   string  $index_columns
 	 * @param   string  $index (should be 'unique', 'fulltext', 'spatial' or 'nonclustered')
 	 * @param   string  $db    the database connection to use
 	 * @return  bool
@@ -369,24 +369,6 @@ class DBUtil
 	public static function repair_table($table, $db = null)
 	{
 		return static::table_maintenance('REPAIR TABLE', $table, $db);
-	}
-
-	/**
-	 * Checks if a given database exists.
-	 *
-	 * @throws  \Database_Exception
-	 * @param   string  $table  Table name
-	 * @param   string  $db     the database connection to use
-	 * @return  bool
-	 */
-	public static function database_exists($database, $db = null)
-	{
-		return \Database_Connection::instance($db ? $db : static::$connection)->schema(
-			'database_exists',
-			array(
-				$database,
-			)
-		);
 	}
 
 	/**

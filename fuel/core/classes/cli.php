@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -35,9 +35,8 @@ class Cli
 	protected static $foreground_colors = array(
 		'black'			=> '0;30',
 		'dark_gray'		=> '1;30',
-		'dark_grey'		=> '1;30',
 		'blue'			=> '0;34',
-		'dark_blue'		=> '0;34',
+		'dark_blue'		=> '1;34',
 		'light_blue'	=> '1;34',
 		'green'			=> '0;32',
 		'light_green'	=> '1;32',
@@ -47,11 +46,9 @@ class Cli
 		'light_red'		=> '1;31',
 		'purple'		=> '0;35',
 		'light_purple'	=> '1;35',
-		'light_yellow'	=> '1;33',
-		'yellow'		=> '0;33',
-		'brown'			=> '0;33',
+		'light_yellow'	=> '0;33',
+		'yellow'		=> '1;33',
 		'light_gray'	=> '0;37',
-		'light_grey'	=> '0;37',
 		'white'			=> '1;37',
 	);
 
@@ -64,7 +61,6 @@ class Cli
 		'magenta'		=> '45',
 		'cyan'			=> '46',
 		'light_gray'	=> '47',
-		'light_grey'	=> '47',
 	);
 
 	protected static $STDOUT;

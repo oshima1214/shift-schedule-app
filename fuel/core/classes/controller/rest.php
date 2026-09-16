@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -14,11 +14,6 @@ namespace Fuel\Core;
 
 abstract class Controller_Rest extends \Controller
 {
-	/**
-	 * @var  null|Response  the response object for this controller
-	 */
-	protected $response = null;
-
 	/**
 	 * @var  null|string  Set this in a controller to use a default format
 	 */
@@ -77,6 +72,12 @@ abstract class Controller_Rest extends \Controller
 	{
 		parent::before();
 
+		// Some Methods cant have a body
+		$this->request->body = null;
+
+		// Which format should the data be returned in?
+		$this->request->lang = $this->_detect_lang();
+
 		$this->response = \Response::forge();
 	}
 
@@ -116,15 +117,8 @@ abstract class Controller_Rest extends \Controller
 		// If no (or an invalid) format is given, auto detect the format
 		if (is_null($this->format) or ! array_key_exists($this->format, $this->_supported_formats))
 		{
-			// try to auto-detect the format
-			if ($ext = \Input::extension())
-			{
-				$this->format = array_key_exists($ext, $this->_supported_formats) ? $ext : $this->_detect_format();
-			}
-			else
-			{
-				$this->format = $this->_detect_format();
-			}
+			// auto-detect the format
+			$this->format = array_key_exists(\Input::extension(), $this->_supported_formats) ? \Input::extension() : $this->_detect_format();
 		}
 
 		// Get the configured auth method if none is defined
@@ -230,12 +224,11 @@ abstract class Controller_Rest extends \Controller
 		// Format not supported, but the output is an array or an object that can not be cast to string
 		elseif (is_array($data) or (is_object($data) and ! method_exists($data, '__toString')))
 		{
-			if (strpos(\Fuel::$env, \Fuel::PRODUCTION) === 0)
+			if (\Fuel::$env == \Fuel::PRODUCTION)
 			{
 				// not acceptable in production
 				if ($http_status == 200)
-				{
-					$http_status = 406;
+				{	$http_status = 406;
 				}
 				$this->response->body('The requested REST method returned an array or object, which is not compatible with the output format "'.$this->format.'"');
 			}
@@ -435,9 +428,9 @@ abstract class Controller_Rest extends \Controller
 		}
 
 		// most other servers
-		elseif (\Input::server('HTTP_AUTHORIZATION'))
+		elseif (\Input::server('HTTP_AUTHENTICATION'))
 		{
-			if (strpos(strtolower(\Input::server('HTTP_AUTHORIZATION')), 'basic') === 0)
+			if (strpos(strtolower(\Input::server('HTTP_AUTHENTICATION')), 'basic') === 0)
 			{
 				list($username, $password) = explode(':', base64_decode(substr(\Input::server('HTTP_AUTHORIZATION'), 6)));
 			}

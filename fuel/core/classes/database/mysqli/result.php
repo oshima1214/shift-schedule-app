@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -81,7 +81,10 @@ class Database_MySQLi_Result extends \Database_Result
 		}
 
 		// sanitize the data if needed
-		$this->_sanitizate();
+		if ($this->_sanitization_enabled)
+		{
+			$this->_row = \Security::clean($result, null, 'security.output_filter');
+		}
 
 		return $this->_row;
 	}

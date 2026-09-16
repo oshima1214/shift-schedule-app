@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -527,21 +527,7 @@ class Query
 			$out = array();
 			foreach($this->select as $k => $v)
 			{
-				if (is_array($v))
-				{
-					if (count($v) === 1)
-					{
-						$out[] = array($v[0], $k);
-					}
-					else
-					{
-						$out[$v[1]] = array($v[0], $k);
-					}
-				}
-				else
-				{
-					$out[] = array($v, $k);
-				}
+				$out[] = is_array($v) ? array($v[0], $k) : array($v, $k);
 			}
 
 			// set select back to before the PKs were added
@@ -958,9 +944,6 @@ class Query
 			unset($conditions['related']);
 		}
 
-		// avoid UnexpectedValue exceptions due to incorrect order
-		ksort($this->relations);
-
 		return $this;
 	}
 
@@ -1103,7 +1086,6 @@ class Query
 
 		// Add defined relations
 		$models = array();
-
 		foreach ($this->relations as $name => $rel)
 		{
 			// when there's a dot it must be a nested relation
@@ -1157,7 +1139,7 @@ class Query
 			}
 
 			// make current query subquery of ultimate query
-			$new_query = \Database_Connection::instance($this->connection)->select(array_values($columns));
+			$new_query = call_fuel_func_array('DB::select', $columns);
 			$query = $new_query->from(array($query, $this->alias));
 		}
 		else
@@ -1379,42 +1361,165 @@ class Query
 	}
 
 	/**
+	 * Hydrate model instances with retrieved data
+	 *
+	 * @param   array     &$row   Row from the database
+	 * @param   array     $models Relations to be expected
+	 * @param   \stdClass $result An object containing current result array
+	 * @param   string    $model  Optionally. Model classname to hydrate
+	 * @param   array     $select Optionally. Columns to use
+	 * @param   array     $primary_key    Optionally. Primary key(s) for this model
+	 *
+	 * @return  Model
+	 */
+	public function hydrate(&$row, $models, \stdClass $result, $model = null, $select = null, $primary_key = null)
+	{
+		// First check the PKs, if null it's an empty row
+		foreach($select as $column)
+		{
+			if (is_string($column[0]))
+			{
+				$r1c1 = $column;
+				break;
+			}
+		}
+		$prefix  = substr($r1c1[0], 0, strpos($r1c1[0], '.') + 1);
+		$obj     = array();
+		foreach ($primary_key as $pk)
+		{
+			$pk_c = null;
+			foreach ($select as $s)
+			{
+				$s[0] === $prefix.$pk and $pk_c = $s[1];
+			}
+
+			if (is_null($row[$pk_c]))
+			{
+				return false;
+			}
+			$obj[$pk] = $row[$pk_c];
+		}
+
+		// Check for cached object
+		$pk  = count($primary_key) == 1 ? reset($obj) : '['.implode('][', $obj).']';
+		$obj = $this->from_cache ? Model::cached_object($pk, $model) : false;
+
+		// Create the object when it wasn't found
+		if ( ! $obj)
+		{
+			// Retrieve the object array from the row
+			$obj = array();
+			foreach ($select as $s)
+			{
+				if ($s[0] instanceOf \Fuel\Core\Database_Expression)
+				{
+					$f = isset($this->select[$s[1]][1]) ? $this->select[$s[1]][1] : $s[1];
+				}
+				else
+				{
+					$f = substr($s[0], strpos($s[0], '.') + 1);
+				}
+				$obj[$f] = $row[$s[1]];
+				if (in_array($f, $primary_key))
+				{
+					$obj[$f] = \Orm\Observer_Typing::typecast($f, $obj[$f], call_user_func($model.'::property', $f));
+				}
+				unset($row[$s[1]]);
+			}
+			$obj = $model::forge($obj, false, $this->view ? $this->view['_name'] : null, $this->from_cache);
+		}
+		else
+		{
+			// add fields not present in the already cached version
+			$new = array();
+			foreach ($select as $s)
+			{
+				if ($s[0] instanceOf \Fuel\Core\Database_Expression)
+				{
+					$f = isset($this->select[$s[1]][1]) ? $this->select[$s[1]][1] : $s[1];
+				}
+				else
+				{
+					$f = substr($s[0], strpos($s[0], '.') + 1);
+				}
+				$new[$f] = $row[$s[1]];
+				if ( ! isset($obj->{$f}))
+				{
+					$obj->{$f} = $new[$f];
+				}
+			}
+			if ($new)
+			{
+				$obj->_update_original($new);
+			}
+		}
+
+		// if the result to be generated is an array and the current object is not yet in there
+		if (is_array($result->data)) {
+			if (! array_key_exists($pk, $result->data))
+			{
+				$result->data[$pk] = $obj;
+			}
+			else
+			{
+				$obj = $result->data[$pk];
+			}
+		}
+		// if the result to be generated is a single object and empty
+		elseif ( ! is_array($result->data) and empty($result->data))
+		{
+			$result->data = $obj;
+		}
+
+		// start fetching relationships
+		$rel_objs = $obj->_relate();
+		$relations_updated = array();
+		$relation_result_wrapper = new \stdClass;
+		foreach ($models as $m)
+		{
+			// when the expected model is empty, there's nothing to be done
+			if (empty($m['model']))
+			{
+				continue;
+			}
+			$relations_updated[] = $m['rel_name'];
+
+			// when not yet set, create the relation result var with null or array
+			if ( ! array_key_exists($m['rel_name'], $rel_objs))
+			{
+				$rel_objs[$m['rel_name']] = $m['relation']->singular ? null : array();
+			}
+
+			$relation_result_wrapper->data = $rel_objs[$m['rel_name']];
+
+			// when result is array or singular empty, try to fetch the new relation from the row
+			$this->hydrate(
+				$row,
+				! empty($m['models']) ? $m['models'] : array(),
+				$relation_result_wrapper,
+				$m['model'],
+				$m['columns'],
+				$m['primary_key']
+			);
+
+			$rel_objs[$m['rel_name']] = $relation_result_wrapper->data;
+		}
+
+		// attach the retrieved relations to the object and update its original DB values
+		$obj->_relate($rel_objs);
+		$obj->_update_original_relations($relations_updated);
+
+		return $obj;
+	}
+
+	/**
 	 * Build the query and return hydrated results
 	 *
 	 * @return  array
 	 */
 	public function get()
 	{
-		// closure to convert field name to column name
-		$field_to_column = function($fields, $alias) {
-			// storage for the result
-			$result = array();
-
-			// process the columns
-			foreach ($fields as $key => $value)
-			{
-				// check for db expressions
-				if (is_array($value))
-				{
-					if ($value[0] instanceOf \Fuel\Core\Database_Expression)
-					{
-						$result[$value[1]] = $key;
-					}
-					else
-					{
-						$result[$value[1]] = substr($value[0], strlen($alias)+1);
-					}
-				}
-				else
-				{
-					$result[$key] = substr($value, strlen($alias)+1);
-				}
-			}
-
-			return $result;
-		};
-
-		// Get the columns in this query
+		// Get the columns
 		$columns = $this->select();
 
 		// Start building the query
@@ -1428,7 +1533,7 @@ class Query
 			}
 		}
 
-		$query = \Database_Connection::instance($this->connection)->select(array_values($select));
+		$query = call_fuel_func_array('DB::select', $select);
 
 		// Set from view/table
 		$query->from(array($this->_table(), $this->alias));
@@ -1438,167 +1543,42 @@ class Query
 		$query   = $tmp['query'];
 		$models  = $tmp['models'];
 
-		// list of models expected in the resulting rows
-		$qmodels = array($this->alias => array(
-			'model' => $this->model,
-			'pk' => $this->model::primary_key(),
-			'columns' => $field_to_column($columns, $this->alias),
-			'relation' => null,
-			'singular' => true,
-		));
-
 		// Make models hierarchical
 		foreach ($models as $name => $values)
 		{
-			// add the model to the list
-			if ($values['model'])
+			if (strpos($name, '.'))
 			{
-				$qmodels[$values['table'][1]] = array(
-					'model' => $values['model'],
-					'pk' => $values['model']::primary_key(),
-					'columns' => $field_to_column($values['columns'], $values['table'][1]),
-					'relation' => $name,
-					'singular' => $values['relation']->is_singular(),
-				);
+				unset($models[$name]);
+				$rels = explode('.', $name);
+				$ref =& $models[array_shift($rels)];
+				foreach ($rels as $rel)
+				{
+					empty($ref['models']) and $ref['models'] = array();
+					empty($ref['models'][$rel]) and $ref['models'][$rel] = array();
+					$ref =& $ref['models'][$rel];
+				}
+				$ref = $values;
 			}
 		}
 
-		// fetch the result
 		$rows = $query->execute($this->connection)->as_array();
 
-		// storage for the fimal result
-		$result = array();
+		// To workaround the PHP 5.x performance issue at pulling a large number of records,
+		// we shouldn't use passing array by reference directly here.
+		$result = new \stdClass;
+		$result->data = array();
 
-		// process the result
+		$model = $this->model;
+		$select = $this->select();
+		$primary_key = $model::primary_key();
 		foreach ($rows as $id => $row)
 		{
-			$this->process_row($row, $qmodels, $result);
-		}
-		// free up some memory
-		unset($rows);
-
-		// convert the result into objects
-		$objects = array();
-		foreach ($result as $key => $record)
-		{
-			if (is_array($record))
-			{
-				$objects[$key] = $this->model::forge($record, false, $this->view ? $this->view['_name'] : null, $this->from_cache);
-			}
-			else
-			{
-				$objects[$key] = $record;
-			}
-
-			// free up some memory
-			unset($result[$key]);
+			$this->hydrate($row, $models, $result, $model, $select, $primary_key);
+			unset($rows[$id]);
 		}
 
-		return $objects;
-	}
-
-	/**
-	 * Process the retrieved data, convert rows to a hierarchical data structure
--	 *
--	 * @param   array     $row     Row from the database
--	 * @param   array     $models  Relations to be expected
--	 * @param   array     &$result array to accumulate the processed results in
--	 */
-	public function process_row($row, $models, &$result)
-	{
-		// relation pointers
-		$pointers = array();
-
-		// relation types
-		$reltypes = array();
-
-		// process the models in the result row
-		foreach ($models as $alias => $model)
-		{
-			// fetch the relation
-			$relation = $model['relation'];
-
-			is_null($relation) or isset($reltypes[$relation]) or $reltypes[$relation] = $model['singular'];
-
-			// storage for extracting current record
-			$record = array();
-
-			// get this models data from the row
-			foreach ($row as $column => $value)
-			{
-				// check if this coulumn belongs to this model
-				if (array_key_exists($column, $model['columns']))
-				{
-					// get the true column name
-					$column = $model['columns'][$column];
-
-					// is it a (part of a) primary key?
-					if ( ! is_null($value) and in_array($column, $model['pk']))
-					{
-						// typecast the pk value
-						$value = Observer_Typing::typecast($column, $value, call_user_func($model['model'].'::property', $column));
-					}
-
-					// store the value
-					$record[$column] = $value;
-				}
-			}
-
-			// determine the PK for this record
-			$pk = $model['model']::implode_pk($record);
-
-			// skip the rest if we don't have a pk (= no result)
-			if (is_null($pk))
-			{
-				continue;
-			}
-
-			// root record?
-			if (is_null($model['relation']))
-			{
-				// store the record if not already present
-				isset($result[$pk]) or $result[$pk] = $record;
-
-				// and add a pointer to it
-				$pointers[""] =& $result[$pk];
-			}
-
-			// related record
-			else
-			{
-				$parent = explode('.', $relation);
-				$current = array_pop($parent);
-				$parent = implode('.', $parent);
-
-				if ( ! array_key_exists($parent, $pointers))
-				{
-					throw new \FuelException("Record hydration exception: parent record \"$parent\" can not be located. This should not happen!");
-				}
-
-				if ($reltypes[$relation])
-				{
-					// singular relation
-					if ( ! isset($pointers[$parent][$current]))
-					{
-						$pointers[$parent][$current] = $record;
-					}
-					$pointers[$relation] =& $pointers[$parent][$current];
-				}
-				else
-				{
-					// non-singular relation
-					if ( ! isset($pointers[$parent][$current]))
-					{
-						$pointers[$parent][$current] = array($pk => $record);
-					}
-					elseif ( ! isset($pointers[$parent][$current][$pk]))
-					{
-						$pointers[$parent][$current][$pk] = $record;
-					}
-					$pointers[$relation] =& $pointers[$parent][$current][$pk];
-				}
-			}
-		}
+		// It's all built, now lets execute and start hydration
+		return $result->data;
 	}
 
 	/**
@@ -1621,7 +1601,7 @@ class Query
 				$select[] = $c[0];
 			}
 		}
-		$query = \Database_Connection::instance($this->connection)->select(array_values($select));
+		$query = call_fuel_func_array('DB::select', $select);
 
 		// Set the defined connection on the query
 		$query->set_connection($this->connection);
@@ -1686,7 +1666,7 @@ class Query
 			') AS count_result');
 
 		// Remove the current select and
-		$query = \Database_Connection::instance($this->connection)->select(array($columns));
+		$query = \DB::select($columns);
 
 		// Set from view or table
 		$query->from(array($this->_table(), $this->alias));
@@ -1720,7 +1700,7 @@ class Query
 			') AS max_result');
 
 		// Remove the current select and
-		$query = \Database_Connection::instance($this->connection)->select(array($columns));
+		$query = \DB::select($columns);
 
 		// Set from table
 		$query->from(array($this->_table(), $this->alias));
@@ -1755,7 +1735,7 @@ class Query
 			') AS min_result');
 
 		// Remove the current select and
-		$query = \Database_Connection::instance($this->connection)->select(array($columns));
+		$query = \DB::select($columns);
 
 		// Set from table
 		$query->from(array($this->_table(), $this->alias));
@@ -1780,8 +1760,7 @@ class Query
 	 */
 	public function insert()
 	{
-		$res = \Database_Connection::instance($this->connection)
-			->insert(call_user_func($this->model.'::table'), array_keys($this->values))
+		$res = \DB::insert(call_user_func($this->model.'::table'), array_keys($this->values))
 			->values(array_values($this->values))
 			->execute($this->write_connection);
 
@@ -1806,9 +1785,7 @@ class Query
 		$this->relations = array();
 
 		// Build query and execute update
-		$query = \Database_Connection::instance($this->connection)
-			->update(call_user_func($this->model.'::table'));
-
+		$query = \DB::update(call_user_func($this->model.'::table'));
 		$tmp   = $this->build_query($query, array(), 'update');
 		$query = $tmp['query'];
 		$res = $query->set($this->values)->execute($this->write_connection);
@@ -1832,9 +1809,7 @@ class Query
 		$this->relations = array();
 
 		// Build query and execute update
-		$query = \Database_Connection::instance($this->connection)
-			->delete(call_user_func($this->model.'::table'));
-
+		$query = \DB::delete(call_user_func($this->model.'::table'));
 		$tmp   = $this->build_query($query, array(), 'delete');
 		$query = $tmp['query'];
 		$res = $query->execute($this->write_connection);

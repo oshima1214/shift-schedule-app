@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -221,7 +221,8 @@ class File_Area
 
 	public function read_dir($path, $depth = 0, $filter = null)
 	{
-		return \File::read_dir($path, $depth, $filter, $this);
+		$content = \File::read_dir($path, $depth, $filter, $this);
+		return $this->get_handler($path, array(), $content);
 	}
 
 	public function rename($path, $new_path)

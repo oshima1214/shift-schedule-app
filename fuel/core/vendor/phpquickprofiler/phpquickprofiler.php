@@ -19,10 +19,6 @@ class PhpQuickProfiler {
 
 	public $output = array();
 	public $config = '';
-	public $startTime = 0;
-	public $queries = array();
-	public $queryCount = 0;
-	public $db = '';
 
 	public function __construct($startTime, $config = '') {
 		$this->startTime = $startTime;
@@ -120,16 +116,8 @@ class PhpQuickProfiler {
 
 		if($this->db != '') {
 			$queryTotals['count'] += $this->db->queryCount;
-			foreach($this->db->queries as $key => $query)
-			{
-				// only implemented for mysql
-				$config = \Config::get('db.'.$query['dbname']);
-				$is_mysql = ($config['type'] == 'mysql' or $config['type'] == 'mysqli' or strpos($config['connection']['dsn'], 'mysql') !== false);
-				if ($is_mysql)
-				{
-					$query = $this->attemptToExplainQuery($query);
-				}
-
+			foreach($this->db->queries as $key => $query) {
+				$query = $this->attemptToExplainQuery($query);
 				$queryTotals['time'] += $query['time'];
 				$query['time'] = $this->getReadableTime($query['time']);
 				$duplicate = false;

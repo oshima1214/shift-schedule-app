@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -161,7 +161,7 @@ class Theme
 		{
 			return (string) $this->render();
 		}
-		catch (\Throwable $e)
+		catch (\Exception $e)
 		{
 			\Errorhandler::exception_handler($e);
 
@@ -539,12 +539,7 @@ class Theme
 	 */
 	public function add_path($path)
 	{
-		if ( ! $realpath = realpath($path))
-		{
-			throw new \FuelException(sprintf('Theme path "%s" is not a valid path!', $path));
-		}
-
-		$this->paths[] = realpath($realpath).DS;
+		$this->paths[] = rtrim($path, DS).DS;
 	}
 
 	/**
@@ -785,46 +780,16 @@ class Theme
 		// determine the path prefix and optionally the module path
 		$path_prefix = '';
 		$module_path = null;
-
-		// If a filename contains a :: then it is trying to be found in a namespace.
-		// This is sometimes used to load a view from a non-loaded module.
-		if (($pos = strripos($view, '::')) > 0)
+		if ($this->config['use_modules'] and class_exists('Request', false) and $request = \Request::active() and $module = $request->module)
 		{
-			// extract the module
-			$module = substr($view, 0, $pos);
+			// we're using module name prefixing
+			$path_prefix = $module.DS;
 
-			// see if it is loaded
-			if (\Module::loaded($module))
-			{
-				// get the module path
-				$module_path = substr(\Autoloader::namespace_path('\\'.ucfirst($module)), 0, -8).'themes'.DS;
+			// and modules are in a separate path
+			is_string($this->config['use_modules']) and $path_prefix = trim($this->config['use_modules'], '\\/').DS.$path_prefix;
 
-				// strip the namespace from the view
-				$view = substr($view, $pos + 2);
-			}
-		}
-
-		// if not explicit, check if we need to search for an override
-		elseif ($this->config['use_modules'])
-		{
-			// are we in a module?
-			if (class_exists('Request', false) and $request = \Request::active() and $module = $request->module)
-			{
-				// we're using module name prefixing
-				$path_prefix = $module.DS;
-
-				// and modules are in a separate path
-				is_string($this->config['use_modules']) and $path_prefix = trim($this->config['use_modules'], '\\/').DS.$path_prefix;
-
-				// do we need to check the module too?
-				$this->config['use_modules'] === true and $module_path = \Module::exists($module).'themes'.DS;
-			}
-
-			// not in a module, check the app for an override
-			else
-			{
-				$module_path = APPPATH.'themes'.DS;
-			}
+			// do we need to check the module too?
+			$this->config['use_modules'] === true and $module_path = \Module::exists($module).'themes'.DS;
 		}
 
 		foreach ($themes as $theme)
@@ -844,7 +809,7 @@ class Theme
 				{
 					return $path;
 				}
-				elseif ($path_prefix and is_file($path = $theme['path'].$path_prefix.$file.$ext))
+				elseif (is_file($path = $theme['path'].$path_prefix.$file.$ext))
 				{
 					return $path;
 				}

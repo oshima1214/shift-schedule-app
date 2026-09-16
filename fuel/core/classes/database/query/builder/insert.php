@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @copyright  2008 - 2009 Kohana Team
  * @link       https://fuelphp.com
  */
@@ -36,7 +36,7 @@ class Database_Query_Builder_Insert extends \Database_Query_Builder
 	 * @param   mixed $table   table name or array($table, $alias) or object
 	 * @param   array $columns column names
 	 */
-	public function __construct($table = null, $columns = null)
+	public function __construct($table = null, array $columns = null)
 	{
 		if ($table)
 		{
@@ -44,7 +44,7 @@ class Database_Query_Builder_Insert extends \Database_Query_Builder
 			$this->_table = $table;
 		}
 
-		if (is_array($columns) and ! empty($columns))
+		if ($columns)
 		{
 			// Set the column names
 			$this->_columns = $columns;

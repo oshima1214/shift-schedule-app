@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -20,23 +20,12 @@ namespace Oil;
  * @category	Core
  * @author		Phil Sturgeon
  */
+
 class Console
 {
-
-	protected const MAX_HISTORY = 99;
-
-	protected $history = array();
-
 	public function __construct()
 	{
-		if (PHP_VERSION_ID < 80400)
-		{
-			error_reporting(E_ALL | E_STRICT);
-		}
-		else
-		{
-			error_reporting(E_ALL);
-		}
+		error_reporting(E_ALL | E_STRICT);
 
 		ini_set("error_log", NULL);
 		ini_set("log_errors", 1);
@@ -45,7 +34,7 @@ class Console
 
 		while (ob_get_level())
 		{
-			ob_end_clean();
+			 ob_end_clean();
 		}
 
 		ob_implicit_flush(true);
@@ -75,27 +64,7 @@ HELP;
 
 	}
 
-	protected function push_history($line)
-	{
-		// delimit each line, allowing for copy & paste of history back into Console
-		$line .= ';';
-
-		array_push($this->history, $line);
-		$this->history = array_slice($this->history, -self::MAX_HISTORY);
-	}
-
-	protected function pop_history()
-	{
-		array_pop($this->history);
-	}
-
-	protected function show_history()
-	{
-		\Cli::write($this->history);
-		\Cli::write('');
-	}
-
-	protected function main()
+	private function main()
 	{
 		\Cli::write(sprintf(
 			'Fuel %s - PHP %s (%s) (%s) [%s]',
@@ -104,14 +73,6 @@ HELP;
 			php_sapi_name(),
 			self::build_date(),
 			PHP_OS
-		));
-
-		\Cli::write(array(
-			'',
-			'Commands',
-			':q | quit - exit the console',
-			':h | history - show transcript',
-			''
 		));
 
 		// Loop until they break it
@@ -127,19 +88,13 @@ HELP;
 				continue;
 			}
 
-			if ($__line == ':q' or $__line == 'quit')
+			if ($__line == 'quit')
 			{
 				break;
 			}
-			elseif ($__line == ':h' or $__line == 'history')
-			{
-				$this->show_history();
-				continue;
-			}
 
 			// Add this line to history
-			$this->push_history($__line);
-
+			//$this->history[] = array_slice($this->history, 0, -99) + array($line);
 			if (\Cli::$readline_support)
 			{
 				readline_add_history($__line);
@@ -156,45 +111,18 @@ HELP;
 			$random_ret = \Str::random();
 			try
 			{
-				$__evalfile = tempnam(sys_get_temp_dir(), 'oil');
-				file_put_contents($__evalfile, '<?php'.PHP_EOL.$__line.';');
-				$ret = include($__evalfile);
-				if (strpos($__line, 'return ') !== 0)
-				{
-					$ret = null;
-				}
-				unset($__line);
+				$ret = eval("unset(\$__line); $__line;");
 			}
 			catch(\Exception $e)
 			{
-				// Remove last (bad) line from history
-				$this->pop_history();
-
 				$ret = $random_ret;
-				$__line = $e;
+				$__line = $e->getMessage();
 			}
-			catch(\Error $e)
-			{
-				// Remove last (bad) line from history
-				$this->pop_history();
-
-				$ret = $random_ret;
-				$__line = $e;
-			}
-			unlink($__evalfile);
 
 			// Error was returned
 			if ($ret === $random_ret)
 			{
-				if ($e instanceOf \Throwable)
-				{
-					\Cli::error('Parse Error - ' . $e->getMessage());
-					\Cli::error('              in ' . $e->getFile() . ' at line '.$e->getLine());
-				}
-				else
-				{
-					\Cli::error('Parse Error - ' . $__line);
-				}
+				\Cli::error('Parse Error - ' . $__line);
 				\Cli::beep();
 			}
 
@@ -245,7 +173,7 @@ HELP;
 
 		for ($i = 0; $i < strlen($line); $i++)
 		{
-			$c = $line[$i];
+			$c = $line{$i};
 			if ($c == "'")
 			{
 				$sq = !$sq;
@@ -288,7 +216,12 @@ HELP;
 		$const = array_keys(get_defined_constants());
 		$var = array_keys($GLOBALS);
 		$func = get_defined_functions();
-		$func = array_merge($func["internal"], $func["user"]);
+
+		foreach ($func["user"] as $i)
+		{
+				$func["internal"][] = $i;
+		}
+		$func = $func["internal"];
 
 		return array_merge($const, $var, $func);
 	}
@@ -302,7 +235,7 @@ HELP;
 		ob_end_clean();
 
 		$x = strip_tags($x);
-		$x = explode("\n", $x); // PHP_EOL doesn't work on Windows
+		$x = explode("\n", $x);	// PHP_EOL doesn't work on Windows
 		$s = array('Build Date => ', 'Build Date ');
 
 		foreach ($x as $i)

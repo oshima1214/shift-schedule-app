@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -119,21 +119,7 @@ class Unzip
 						}
 
 						// Apply chmod if configured to do so
-						if ($this->apply_chmod)
-						{
-							try
-							{
-								chmod($this->_target_dir . '/' . $str, $this->apply_chmod);
-							}
-							catch (\PhpErrorException $e)
-							{
-								// if we get something else then a chmod error, bail out
-								if (substr($e->getMessage(), 0, 8) !== 'chmod():')
-								{
-									throw new $e;
-								}
-							}
-						}
+						$this->apply_chmod AND chmod($this->_target_dir . '/' . $str, $this->apply_chmod);
 					}
 				}
 			}
@@ -143,9 +129,7 @@ class Unzip
 				continue;
 			}
 
-			$file_location = $this->_target_dir . '/' . ($preserve_filepath ? $file : basename($file));
-			$file_location = realpath(dirname($file_location)) . '/' . basename($file_location);
-
+			$file_location = realpath($this->_target_dir . '/' . ($preserve_filepath ? $file : basename($file)));
 			if ($file_location and strpos($file_location, $this->_target_dir) === 0)
 			{
 				$file_locations[] = $file_location;
@@ -313,18 +297,7 @@ class Unzip
 
 		if ($this->apply_chmod AND $target_file_name)
 		{
-			try
-			{
-				chmod($target_file_name, 0644);
-			}
-			catch (\PhpErrorException $e)
-			{
-				// if we get something else then a chmod error, bail out
-				if (substr($e->getMessage(), 0, 8) !== 'chmod():')
-				{
-					throw new $e;
-				}
-			}
+			chmod($target_file_name, 0644);
 		}
 
 		return $ret;
@@ -349,7 +322,7 @@ class Unzip
 	/**
 	 * Free the file resource Automatic destroy.
 	 */
-	public function __destruct()
+	public function __destroy()
 	{
 		$this->close();
 	}

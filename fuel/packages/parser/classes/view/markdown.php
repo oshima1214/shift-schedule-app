@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -24,7 +24,7 @@ class View_Markdown extends \View
 
 		if (\Config::get('parser.View_Markdown.allow_php', false))
 		{
-			$contents = static::pre_process($file, 'php', $data = $this->get_data());
+			$contents = static::pre_process('php', $file, $data = $this->get_data());
 			$this->unsanitize($data);
 		}
 		else
@@ -35,7 +35,7 @@ class View_Markdown extends \View
 		return static::parser()->transform($contents);
 	}
 
-	protected static function pre_process($_view_filename, $_type = 'php', array $_data = array())
+	protected static function pre_process($_type = 'php', $_view_filename, array $_data = array())
 	{
 		if ($_type == 'php')
 		{

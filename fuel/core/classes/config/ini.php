@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -43,41 +43,6 @@ class Config_Ini extends \Config_File
 	 */
 	protected function export_format($contents)
 	{
-		return $this->buildOutputString($contents);
+		throw new \ConfigException('Saving config to ini is not supported at this time');
 	}
-
-    /**
-     * Generated the output of the ini file, suitable for echo'ing or
-     * writing back to the ini file.
-     *
-     * @param array $array array of ini data
-     *
-     * @return  string
-     */
-    protected function buildOutputString(array $array, array $parent = []): string
-    {
-        $returnValue = '';
-
-        foreach ($array as $key => $value)
-        {
-            if (is_array($value)) // Subsection case
-            {
-                // Merge all the sections into one array
-                if (is_int($key)) $key++;
-                $subSection = array_merge($parent, (array)$key);
-                // Add section information to the output
-                if (Arr::is_assoc($value))
-                {
-                    if (count($subSection) > 1) $returnValue .= PHP_EOL;
-                    $returnValue .= '[' . implode(':', $subSection) . ']' . PHP_EOL;
-                }
-                // Recursively traverse deeper
-                $returnValue .= $this->buildOutputString($value, $subSection);
-                $returnValue .= PHP_EOL;
-            }
-            elseif (isset($value)) $returnValue .= "$key=" . (is_bool($value) ? var_export($value, true) : $value) . PHP_EOL; // Plain key->value case
-        }
-
-        return count($parent) ? $returnValue : rtrim($returnValue) . PHP_EOL;
-    }
 }

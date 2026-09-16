@@ -142,8 +142,7 @@ return array(
 		'driver' => 'mailgun',
 		'mailgun' => array(
 			'key' => 'YOUR KEY',
-			'domain' => 'YOUR DOMAIN',
-			'endpoint' => null | 'OPTIONAL ALT. API ENDPOINT URL' // e.g. 'https://api.eu.mailgun.net/v3'
+			'domain' => 'YOUR DOMAIN'
 		),
 	),
 );

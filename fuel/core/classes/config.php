@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -38,11 +38,10 @@ class Config
 	 * @param    mixed    $group        null for no group, true for group is filename, false for not storing in the master config
 	 * @param    bool     $reload       true to force a reload even if the file is already loaded
 	 * @param    bool     $overwrite    true for array_merge, false for \Arr::merge
-	 * @param    bool     $appfirst     wether app config files should overrule module configuration
 	 * @return   array                  the (loaded) config array
 	 * @throws  \FuelException
 	 */
-	public static function load($file, $group = null, $reload = false, $overwrite = false, $appfirst = false)
+	public static function load($file, $group = null, $reload = false, $overwrite = false)
 	{
 		// storage for the config
 		$config = array();
@@ -99,7 +98,7 @@ class Config
 
 					if (class_exists($class))
 					{
-						$cache and static::$loaded_files[$file] = true;
+						static::$loaded_files[$file] = true;
 						$class = new $class($file);
 					}
 					else
@@ -133,7 +132,7 @@ class Config
 				// then load its config
  				try
 				{
-					$config = $class->load($overwrite, ! $reload, $appfirst);
+					$config = $class->load($overwrite, ! $reload);
 				}
 				catch (\ConfigException $e)
 				{

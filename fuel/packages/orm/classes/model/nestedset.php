@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -701,32 +701,6 @@ class Model_Nestedset extends Model
 	}
 
 	// -------------------------------------------------------------------------
-
-	/**
-	 * Check if the object has any siblings
-	 *
-	 * @return  bool
-	 */
-	public function has_siblings()
-	{
-		// the tree root never has siblings
-		if ( ! $this->is_root())
-		{
-			// get our parent
-			$our_parent = $this->parent()->get_one();
-
-			// check if we're the only sibling
-			if ($our_parent and $our_parent->{static::tree_config('right_field')} - $our_parent->{static::tree_config('left_field')} != 3)
-			{
-				// parent has only one child
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	// -------------------------------------------------------------------------
 	// integer tree methods
 	// -------------------------------------------------------------------------
 
@@ -835,11 +809,8 @@ class Model_Nestedset extends Model
 		$index = 0;
 		$tracker[$index] =& $tree[$this->{$pk}];
 
-		// preserve any defined relations
-		$relations = isset($this->_node_operation['related']) ? $this->_node_operation['related'] : array();
-
 		// loop over the descendants
-		foreach ($this->descendants()->related($relations)->get() as $treenode)
+		foreach ($this->descendants()->get() as $treenode)
 		{
 			// get the data for this node and make sure we have a place to store child information
 			if ($as_object)
@@ -1380,17 +1351,11 @@ class Model_Nestedset extends Model
 	 * @returns  mixed
 	 * @throws  BadMethodCallException if called without a parameter and without a node to fetch
 	 */
-	public function get_one($query = null)
+	public function get_one(Query $query = null)
 	{
 		// do we have a query object passed?
 		if (func_num_args())
 		{
-			// validate the type
-			if ( ! $query instanceOf Query)
-			{
-				throw new \OutOfBoundsException('Model object passed to get_one() is not an instance of \Orm\Query.');
-			}
-
 			// return the query result
 			return $query->get_one();
 		}
@@ -1414,8 +1379,8 @@ class Model_Nestedset extends Model
 	/**
 	 * Set a relation to include
 	 *
-	 * @param   string|array  $relation
-	 * @param   array         $conditions    Optionally
+	 * @param   string  $relation
+	 * @param   array   $conditions    Optionally
 	 *
 	 * @return  $this
 	 */
@@ -1433,27 +1398,8 @@ class Model_Nestedset extends Model
 			);
 		}
 
-		// unify the arguments
-		if ( ! is_array($relation))
-		{
-			$relation = array($relation => $conditions);
-		}
-
-		// add them
-		foreach ($relation as $name => $conditions)
-		{
-			// store the relation to include
-			if (is_int($name))
-			{
-				// indexed entry with only name
-				$this->_node_operation['related'][$conditions] = array();
-			}
-			else
-			{
-				// assoc entry with name and conditions
-				$this->_node_operation['related'][$name] = $conditions;
-			}
-		}
+		// store the relation to include
+		$this->_node_operation['related'][$relation] = $conditions;
 
 		return $this;
 	}

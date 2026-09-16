@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -103,14 +103,8 @@ class DB
 	 * @param   array   columns to select
 	 * @return  Database_Query_Builder_Select
 	 */
-	public static function select_array($columns = null)
+	public static function select_array(array $columns = null)
 	{
-		// columns must be a nullable array
-		if ( ! is_null($columns) and ! is_array($columns))
-		{
-			throw new \FuelException(__FUNCTION__ . ': Argument #1 ($columns) must be of type array, ' . gettype($columns) . ' given');
-		}
-
 		return \Database_Connection::instance(null, null, false)->select($columns);
 	}
 
@@ -124,14 +118,8 @@ class DB
 	 * @param   array   list of column names or array($column, $alias) or object
 	 * @return  Database_Query_Builder_Insert
 	 */
-	public static function insert($table = null, $columns = null)
+	public static function insert($table = null, array $columns = null)
 	{
-		// columns must be a nullable array
-		if ( ! is_null($columns) and ! is_array($columns))
-		{
-			throw new \FuelException(__FUNCTION__ . ': Argument #2 ($columns) must be of type array, ' . gettype($columns) . ' given');
-		}
-
 		return \Database_Connection::instance()->insert($table, $columns);
 	}
 

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -21,26 +21,22 @@ class Arraylike implements \ArrayAccess, \IteratorAggregate
 		$this->items = $items;
 	}
 
-	#[\ReturnTypeWillChange]
-	public function offsetExists(/*mixed */$offset)/*: bool*/
+	public function offsetExists($offset)
 	{
 		return isset($this->items[$offset]);
 	}
 
-	#[\ReturnTypeWillChange]
-	public function offsetGet(/*mixed */$offset)/*: mixed*/
+	public function offsetGet($offset)
 	{
 		return $this->items[$offset];
 	}
 
-	#[\ReturnTypeWillChange]
-	public function offsetSet(/*mixed */$offset, /*mixed */$value)/*: void*/
+	public function offsetSet($offset, $value)
 	{
 		$this->items[$offset] = $value;
 	}
 
-	#[\ReturnTypeWillChange]
-	final public function offsetUnset(/*mixed */$offset)/*: void*/
+	public function offsetUnset($offset)
 	{
 		unset($this->items[$offset]);
 	}

@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -38,7 +38,7 @@ return array(
 
 	/**
 	 * Array, choose which columns from the users table are selected.
-	 *  must include: id. username, password, salt, email, last_login,
+	 *  must include: username, password, email, last_login,
 	 * login_hash, group & profile_fields
 	 */
 	'table_columns' => null,

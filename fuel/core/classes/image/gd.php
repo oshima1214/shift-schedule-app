@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -15,7 +15,7 @@ namespace Fuel\Core;
 class Image_Gd extends \Image_Driver
 {
 	protected $image_data = null;
-	protected $accepted_extensions = array('png', 'gif', 'jpg', 'jpeg', 'webp');
+	protected $accepted_extensions = array('png', 'gif', 'jpg', 'jpeg');
 	protected $gdresizefunc = "imagecopyresampled";
 
 	public function load($filename, $return_data = false, $force_extension = false)
@@ -26,6 +26,7 @@ class Image_Gd extends \Image_Driver
 
 		if ( ! $return_data)
 		{
+			$this->image_data !== null and imagedestroy($this->image_data);
 			$this->image_data = null;
 		}
 
@@ -85,15 +86,7 @@ class Image_Gd extends \Image_Driver
 		$degrees = 360 - $degrees;
 		$bgcolor = $this->config['bgcolor'] !== null ? $this->config['bgcolor'] : '#000';
 		$color = $this->create_color($this->image_data, $bgcolor, 100);
-
-		if (version_compare(phpversion(), '8.3', '>='))
-		{
-			$this->image_data = imagerotate($this->image_data, $degrees, $color);
-		}
-		else
-		{
-			$this->image_data = imagerotate($this->image_data, $degrees, $color, false);
-		}
+		$this->image_data = imagerotate($this->image_data, $degrees, $color, false);
 	}
 
 	protected function _watermark($filename, $position, $padding = array(5,5))
@@ -113,7 +106,7 @@ class Image_Gd extends \Image_Driver
 			$watermark = $this->load($filename, true);
 
 			// Below is to prevent glitch in GD with negative  $x coords
-			if ($x < 0 or $y < 0)
+			if ($x < 0 || $y < 0)
 			{
 				$this->debug("Modifying watermark to remove negative coords.");
 				// Generate a new width and height for the watermark.
@@ -211,7 +204,7 @@ class Image_Gd extends \Image_Driver
 
 		// Create new blank image
 		$image = $this->create_transparent_image($sizes->width, $sizes->height);
-		if (is_resource($maskimage) or $maskimage instanceof \GdImage)
+		if (is_resource($maskimage))
 		{
 			$maskim = $maskimage;
 		}
@@ -297,7 +290,7 @@ class Image_Gd extends \Image_Driver
 				$blue  = $color & 0xFF;
 
 				// If its black or white, theres no use in setting the pixel
-				if (($red == 0 && $green == 0 && $blue == 0) or ($red == 255 && $green == 255 && $blue == 255))
+				if (($red == 0 && $green == 0 && $blue == 0) || ($red == 255 && $green == 255 && $blue == 255))
 				{
 					continue;
 				}
@@ -316,12 +309,12 @@ class Image_Gd extends \Image_Driver
 			$filename = $this->image_fullpath;
 		}
 
-		if ($filename == $this->image_fullpath && (is_resource($this->image_data) or $this->image_data instanceof \GdImage))
+		if ($filename == $this->image_fullpath && is_resource($this->image_data))
 		{
 			$width  = imagesx($this->image_data);
 			$height = imagesy($this->image_data);
 		}
-		elseif (is_resource($filename) or $filename instanceof \GdImage)
+		elseif (is_resource($filename))
 		{
 			$width  = imagesx($filename);
 			$height = imagesy($filename);
@@ -342,7 +335,7 @@ class Image_Gd extends \Image_Driver
 
 		$vars = array(&$this->image_data, $filename);
 		$filetype = $this->image_extension;
-		if ($filetype == 'jpg' or $filetype == 'jpeg')
+		if ($filetype == 'jpg' || $filetype == 'jpeg')
 		{
 			$vars[] = $this->config['quality'];
 			$filetype = 'jpeg';
@@ -371,7 +364,7 @@ class Image_Gd extends \Image_Driver
 		$this->add_background();
 
 		$vars = array($this->image_data, null);
-		if ($filetype == 'jpg' or $filetype == 'jpeg')
+		if ($filetype == 'jpg' || $filetype == 'jpeg')
 		{
 			$vars[] = $this->config['quality'];
 			$filetype = 'jpeg';
@@ -423,7 +416,7 @@ class Image_Gd extends \Image_Driver
 
 	protected function add_background()
 	{
-		if ($this->config['bgcolor'] != null or ($this->new_extension == 'jpg' or $this->new_extension == 'jpeg'))
+		if ($this->config['bgcolor'] != null || ($this->new_extension == 'jpg' || $this->new_extension == 'jpeg'))
 		{
 			$bgcolor = $this->config['bgcolor'] == null ? '#000' : $this->config['bgcolor'];
 			$this->debug("Adding background color $bgcolor");
@@ -452,7 +445,7 @@ class Image_Gd extends \Image_Driver
 		$color = $this->create_color($image, $bgcolor, 0);
 
 		imagesavealpha($image, true);
-		if ($this->image_extension == 'gif' or $this->image_extension == 'png')
+		if ($this->image_extension == 'gif' || $this->image_extension == 'png')
 		{
 			// Get the current transparent color if possible...
 			$transcolor = imagecolortransparent($image);
@@ -467,7 +460,7 @@ class Image_Gd extends \Image_Driver
 		imagefilledrectangle($image, 0, 0, $width, $height, $color);
 		imagealphablending($image, true);
 
-		if (is_resource($resource) or $resource instanceof \GdImage)
+		if (is_resource($resource))
 		{
 			imagecopy($image, $resource, 0, 0, 0, 0, $width, $height);
 		}

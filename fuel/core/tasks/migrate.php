@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -69,76 +69,100 @@ class Migrate
 		$all = \Cli::option('all');
 		$installed = \Cli::option('installed');
 
-		// validate the input
 		if ($all and $installed)
 		{
 			\Cli::write('--all and --installed are mutually exclusive!', 'light_red');
 			exit;
 		}
 
-		// all or installed both include all app migrations
-		if ($all or $installed)
+		if ($all)
 		{
 			$default = true;
+			$modules = true;
+			$packages = true;
 		}
-
-		// get the module and package lists
-		static::$modules = empty($modules) ? array() : explode(',', $modules);
-		static::$packages = empty($packages) ? array() : explode(',', $packages);
-
-		if ($installed)
+		elseif ($installed)
 		{
-			static::$modules = array_merge(static::$modules, \Module::loaded());
-			static::$packages = array_merge(static::$packages, \Package::loaded());
+			$default = true;
+
+			// fetch defined modules
+			$modules = explode(',', $modules);
+			foreach(\Config::get('always_load.modules', array()) as $module)
+			{
+				$modules[] = $module;
+			}
+			$modules = implode(',', array_unique($modules));
+
+			// fetch defined packages
+			$packages = explode(',', $packages);
+			foreach(\Config::get('always_load.packages', array()) as $name => $package)
+			{
+				$packages[] = is_numeric($name) ? $package : $name;
+			}
+			$packages = implode(',', array_unique($packages));
 		}
-		elseif ($all)
+
+		// if modules option set
+		if ( ! empty($modules))
 		{
-			static::$modules = array_merge(static::$modules, \Module::installed());
-			static::$packages = array_merge(static::$packages, \Package::installed());
+			// if true - get all modules
+			if ($modules === true)
+			{
+				// loop through module paths
+				foreach (\Config::get('module_paths') as $path)
+				{
+					// get all modules that have files in the migration folder
+					foreach(new \GlobIterator(realpath($path).DS.'*') as $m)
+					{
+						if (count(glob($m->getPathname().rtrim(DS.\Config::get('migrations.folder'), '\\/').DS.'*.php', GLOB_NOSORT)))
+						{
+							static::$modules[] = $m->getBasename();
+						}
+					}
+				}
+			}
+			// else do selected modules
+			else
+			{
+				static::$modules = explode(',', $modules);
+			}
 		}
 
-		// cleanup the values found
-		array_map('trim', static::$modules);
-		array_map('strtolower', static::$modules);
-		static::$modules = array_unique(static::$modules);
-
-		array_map('trim', static::$packages);
-		array_map('strtolower', static::$packages);
-		static::$packages = array_unique(static::$packages);
-
-		// set the module and package count
-		static::$module_count = count(static::$modules);
-		static::$package_count = count(static::$packages);
+		// if packages option set
+		if ( ! empty($packages))
+		{
+			// if true - get all packages
+			if ($packages === true)
+			{
+				// get all packages that have files in the migration folder
+				foreach (\Config::get('package_paths', array(PKGPATH)) as $path)
+				{
+					// get all modules that have files in the migration folder
+					foreach(new \GlobIterator(realpath($path).DS.'*') as $p)
+					{
+						if (count(glob($p->getPathname().rtrim(DS.\Config::get('migrations.folder'), '\\/').DS.'*.php', GLOB_NOSORT)))
+						{
+							static::$packages[] = $p->getBasename();
+						}
+					}
+				}
+			}
+			// else do selected packages
+			else
+			{
+				static::$packages = explode(',', $packages);
+			}
+		}
 
 		// if packages or modules are specified, and the app isn't, disable app migrations
 		if ( ( ! empty($packages) or ! empty($modules)) and empty($default))
 		{
 			static::$default = false;
 		}
-	}
 
-	/**
-	 * To make the up command show in the refine available task list
-	 */
-	public function up()
-	{
-		return $this->__call('up', array());
-	}
-
-	/**
-	 * To make the down command show in the refine available task list
-	 */
-	public function down()
-	{
-		return $this->__call('down', array());
-	}
-
-	/**
-	 * To make the current command show in the refine available task list
-	 */
-	public function current()
-	{
-		return $this->__call('current', array());
+		// set the module and package count
+		static::$module_count = count(static::$modules);
+		static::$package_count = count(static::$packages);
 	}
 
 	/**
@@ -173,20 +197,6 @@ class Migrate
 				static::$name('default', 'app');
 			}
 
-			// run migrations on all specified packages
-			foreach (static::$packages as $package)
-			{
-				// check if the module exists
-				if ( ! \Package::exists($package))
-				{
-					\Cli::write('Requested package "'.$package.'" does not exist!', 'light_red');
-				}
-				else
-				{
-					static::$name($package, 'package');
-				}
-			}
-
 			// run migrations on all specified modules
 			foreach (static::$modules as $module)
 			{
@@ -199,6 +209,20 @@ class Migrate
 				{
 					// run the migration
 					static::$name($module, 'module');
+				}
+			}
+
+			// run migrations on all specified packages
+			foreach (static::$packages as $package)
+			{
+				// check if the module exists
+				if ( ! \Package::exists($package))
+				{
+					\Cli::write('Requested package "'.$package.'" does not exist!', 'light_red');
+				}
+				else
+				{
+					static::$name($package, 'package');
 				}
 			}
 
@@ -407,34 +431,33 @@ class Migrate
 	public static function help()
 	{
 		echo <<<HELP
-Description:
-    The migrate task can run migrations. You can go up, down or by default go to the current migration marked in the config file.
-
 Usage:
     php oil refine migrate[:command] [--version=X]
 
-Task commands:
-    help        Shows this text
-    current     Migrates to the version defined in the migration configuration file
-    up          Migrate up to the next version
-    down        Migrate down to the previous version
-    run         Run all migrations (default)
+Fuel commands:
+    help     shows this text
+    current  migrates to the version defined in the migration configuration file
+    up       migrate up to the next version
+    down     migrate down to the previous version
+    run      run all migrations (default)
 
-Task options:
-    -v, [--version]     Migrate to a specific version ( only 1 item at a time)
-                        If no version is given, it lists all installed migrations
-    --catchup           Use if you have out-of-sequence migrations that can be safely run
-    --installed         Shortcut for --modules=<list> --packages=<list> --default, it will use
-                        Your applications' "always_load" configuration to determine what to migrate
-    --all               Shortcut for --modules --packages --default
-    --default           Re-enables default migration
+Fuel options:
+    -v, [--version]  # Migrate to a specific version ( only 1 item at a time)
+                     # If no version is given, it lists all installed migrations
+    --catchup        # Use if you have out-of-sequence migrations that can be safely run
+    --installed      # shortcut for --modules=<list> --packages=<list> --default, it will use
+                       your applications' "always_load" configuration to determine what to migrate
+    --all            # shortcut for --modules --packages --default
 
-    The following disable default migrations unless you add --default to the command:
+    # The following disable default migrations unless you add --default to the command
+    --default                               # re-enables default migration
+    --modules -m                            # Migrates all modules
+    --modules=item1,item2 -m=item1,item2    # Migrates specific modules
+    --packages -p                           # Migrates all packages
+    --packages=item1,item2 -p=item1,item2   # Migrates specific modules
 
-    --modules -m                              Migrates all modules
-    --modules=item1,item2 -m=item1,item2      Migrates specific modules
-    --packages -p                             Migrates all packages
-    --packages=item1,item2 -p=item1,item2     Migrates specific modules
+Description:
+    The migrate task can run migrations. You can go up, down or by default go to the current migration marked in the config file.
 
 Examples:
     php oil r migrate

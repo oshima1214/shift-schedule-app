@@ -3,10 +3,10 @@
  * Fuel is a fast, lightweight, community driven PHP 5.4+ framework.
  *
  * @package    Fuel
- * @version    1.9-dev
+ * @version    1.8.2
  * @author     Fuel Development Team
  * @license    MIT License
- * @copyright  2010-2026 Fuel Development Team
+ * @copyright  2010 - 2019 Fuel Development Team
  * @link       https://fuelphp.com
  */
 
@@ -42,7 +42,6 @@ class Session
 		'cookie_domain'             => '',
 		'cookie_path'               => '/',
 		'cookie_http_only'          => null,
-		'cookie_same_site'          => null,
 		'encrypt_cookie'            => true,
 		'expire_on_close'           => false,
 		'expiration_time'           => 7200,
@@ -66,61 +65,59 @@ class Session
 		{
 			// create the default instance if required
 			static::$_instance = static::forge();
+
+			// and start it if it wasn't auto-started
+			if ( ! \Config::get('session.auto_start', true))
+			{
+				static::$_instance->start();
+			}
 		}
 
 		if (\Config::get('session.native_emulation', false))
 		{
 			// emulate native PHP sessions
-			if (PHP_VERSION_ID < 80000)
-			{
-				session_set_save_handler(
-					// open
-					function ($savePath, $sessionName) {
-						return true;
-					},
-					// close
-					function () {
-						return true;
-					},
-					// read
-					function ($sessionId) {
-						// copy all existing session vars into the PHP session store
-						$_SESSION = \Session::get();
-						$_SESSION['__org__'] = $_SESSION;
-						return '';
-					},
-					// write
-					function ($sessionId, $data) {
-						// get the original data
-						$org = isset($_SESSION['__org__']) ? $_SESSION['__org__'] : array();
-						unset($_SESSION['__org__']);
+			session_set_save_handler(
+				// open
+				function ($savePath, $sessionName) {
+					return true;
+				},
+				// close
+				function () {
+					return true;
+				},
+				// read
+				function ($sessionId) {
+					// copy all existing session vars into the PHP session store
+					$_SESSION = \Session::get();
+					$_SESSION['__org__'] = $_SESSION;
+					return '';
+				},
+				// write
+				function ($sessionId, $data) {
+					// get the original data
+					$org = isset($_SESSION['__org__']) ? $_SESSION['__org__'] : array();
+					unset($_SESSION['__org__']);
 
-						// do we need to remove stuff?
-						if ($remove = array_diff_key($org, $_SESSION))
-						{
-							\Session::delete(array_keys($remove));
-						}
-
-						// add or update the remainder
-						empty($_SESSION) or \Session::set($_SESSION);
-						return true;
-					},
-					// destroy
-					function ($sessionId) {
-						\Session::destroy();
-						return true;
-					},
-					// gc
-					function ($lifetime) {
-						return true;
+					// do we need to remove stuff?
+					if ($remove = array_diff_key($org, $_SESSION))
+					{
+						\Session::delete(array_keys($remove));
 					}
+
+					// add or update the remainder
+					empty($_SESSION) or \Session::set($_SESSION);
+					return true;
+				},
+				// destroy
+				function ($sessionId) {
+					\Session::destroy();
+					return true;
+				},
+				// gc
+				function ($lifetime) {
+					return true;
+				}
 			);
-			}
-			else
-			{
-				// use an external file here to avoid parse errors in PHP < 8.4
-				require('sessionhandler84.php');
-			}
 		}
 	}
 
@@ -177,7 +174,7 @@ class Session
 			static::$_instances[$cookie] =& $driver;
 
 			// start the session if needed
-			if (\Arr::get($config, 'session.auto_start', true))
+			if (\Config::get('session.auto_start', true))
 			{
 				$driver->start();
 			}
@@ -201,7 +198,7 @@ class Session
 	/**
 	 * create or return the driver instance
 	 *
-	 * @param	string|null name of the instance
+	 * @param	void
 	 * @return	\Session_Driver object
 	 */
 	public static function instance($instance = null)
@@ -220,48 +217,6 @@ class Session
 
 		// return the default instance
 		return static::forge();
-	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * check if the given session instance is loaded and active
-	 *
-	 * @param	string|null name of the instance
-	 * @return	bool
-	 */
-	public static function active($instance = null)
-	{
-		// if no named instance is requested
-		if ($instance === null)
-		{
-			// find the default instance
-			$config = \Config::get('session', array());
-
-			// When a string was passed it's just the driver type
-			$config = array_merge(static::$_defaults, $config);
-
-			if (empty($config['driver']))
-			{
-				throw new \Session_Exception('No session driver given or no default session driver set.');
-			}
-
-			// determine the driver to load
-			$class = '\\Session_'.ucfirst($config['driver']);
-
-			$driver = new $class($config);
-
-			// get the driver's cookie name
-			$instance = $driver->get_config('cookie_name');
-		}
-
-		// not active if it doesn't exist
-		if ( ! array_key_exists($instance, static::$_instances))
-		{
-			return false;
-		}
-
-		return static::$_instances[$instance]->get_state() != 'init';
 	}
 
 	// --------------------------------------------------------------------
