@@ -142,10 +142,10 @@
 </div>
 
 <script>
-  var TIME_OPTIONS = <?php echo json_encode($time_options, JSON_UNESCAPED_UNICODE); ?>;
+  const TIME_OPTIONS = <?php echo json_encode($time_options, JSON_UNESCAPED_UNICODE); ?>;
 
   function ViewModel() {
-    var self = this;
+    const self = this;
 
     self.rows = ko.observableArray([]);
     self.week = ko.observable('');
@@ -170,17 +170,17 @@
      * 編集中はそれに加えて「編集対象の日」も選べるようにする。
      */
     self.selectableDays = ko.computed(function () {
-      var editing = self.editingId();
+      const editing_request_id = self.editingId();
 
       return self.rows().filter(function (row) {
-        return ! row.id || row.id === editing;
+        return ! row.id || row.id === editing_request_id;
       });
     });
 
     /** 選択できる最初の日をフォームに入れる */
     self.resetFormDate = function () {
-      var days = self.selectableDays();
-      self.form.work_date(days.length ? days[0].date : '');
+      const selectable_days = self.selectableDays();
+      self.form.work_date(selectable_days.length ? selectable_days[0].date : '');
     };
 
     /** 指定週を読み込む（画面遷移なし） */
@@ -240,16 +240,16 @@
       self.errors([]);
       self.saving(true);
 
-      var payload = {
+      const request_payload = {
         work_date: self.form.work_date(),
         start_time: self.form.start_time(),
         end_time: self.form.end_time()
       };
-      var url = self.editingId()
+      const endpoint_url = self.editingId()
         ? '<?php echo Uri::create('shift/update'); ?>/' + self.editingId()
         : '<?php echo Uri::create('shift/create'); ?>';
 
-      api.post(url, payload).then(function () {
+      api.post(endpoint_url, request_payload).then(function () {
         self.saving(false);
         self.load(self.week());
       }).catch(function (err) {

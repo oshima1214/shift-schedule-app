@@ -184,11 +184,11 @@
 
 <script>
   // 希望中 → 確定 → 却下 → 希望中 の順に回す
-  var STATUS_ORDER = ['requested', 'approved', 'rejected'];
-  var STATUS_LABEL = { requested: '希望中', approved: '確定', rejected: '却下' };
+  const STATUS_ORDER = ['requested', 'approved', 'rejected'];
+  const STATUS_LABEL = { requested: '希望中', approved: '確定', rejected: '却下' };
 
   function ViewModel() {
-    var self = this;
+    const self = this;
 
     self.rows = ko.observableArray([]);
     self.days = ko.observableArray([]);
@@ -220,23 +220,23 @@
 
     /** 表示中の週から、指定した状態のセルのIDを集める */
     self.weekIdsOf = function (status) {
-      var ids = [];
+      const matched_request_ids = [];
       self.rows().forEach(function (row) {
         row.cells.forEach(function (cell) {
-          if (cell && cell.status === status) { ids.push(cell.id); }
+          if (cell && cell.status === status) { matched_request_ids.push(cell.id); }
         });
       });
-      return ids;
+      return matched_request_ids;
     };
 
     /** 指定した曜日（列）から、指定した状態のセルのIDを集める */
     self.dayIdsOf = function (index, status) {
-      var ids = [];
+      const day_request_ids = [];
       self.rows().forEach(function (row) {
-        var cell = row.cells[index];
-        if (cell && cell.status === status) { ids.push(cell.id); }
+        const target_cell = row.cells[index];
+        if (target_cell && target_cell.status === status) { day_request_ids.push(target_cell.id); }
       });
-      return ids;
+      return day_request_ids;
     };
 
     self.weekRequestedIds = ko.computed(function () { return self.weekIdsOf('requested'); });
@@ -288,17 +288,17 @@
      * @param {string}   reason  却下理由（却下以外ではサーバ側で無視される）
      */
     self.applyStatus = function (ids, status, reason) {
-      var single = ids.length === 1;
-      var url = single
+      const is_single_target = ids.length === 1;
+      const endpoint_url = is_single_target
         ? '<?php echo Uri::create('schedule/status'); ?>/' + ids[0]
         : '<?php echo Uri::create('schedule/bulk_status'); ?>';
-      var payload = { status: status, reject_reason: reason || '' };
+      const request_payload = { status: status, reject_reason: reason || '' };
 
-      if (!single) { payload.ids = ids; }
+      if (!is_single_target) { request_payload.ids = ids; }
 
       self.saving(true);
 
-      return api.post(url, payload).then(function (body) {
+      return api.post(endpoint_url, request_payload).then(function (body) {
         self.saving(false);
         // 人員サマリも作り直す必要があるため、週ごと読み直す
         self.load(self.week());
@@ -313,11 +313,11 @@
     self.toggle = function (cell) {
       self.errors([]);
 
-      var index = STATUS_ORDER.indexOf(cell.status);
-      var next = STATUS_ORDER[(index + 1) % STATUS_ORDER.length];
+      const current_status_index = STATUS_ORDER.indexOf(cell.status);
+      const next_status = STATUS_ORDER[(current_status_index + 1) % STATUS_ORDER.length];
 
       // 却下するときは理由を必ず記録する
-      if (next === 'rejected') {
+      if (next_status === 'rejected') {
         self.openReject([cell.id], 'このシフト希望を却下します。');
         return;
       }
@@ -329,19 +329,19 @@
 
     /** 週全体の希望中をまとめて確定する */
     self.approveWeek = function () {
-      var ids = self.weekRequestedIds();
-      if (!ids.length) { return; }
-      if (!confirm('この週の希望中 ' + ids.length + ' 件をまとめて確定します。よろしいですか？')) { return; }
-      self.approve(ids);
+      const week_requested_ids = self.weekRequestedIds();
+      if (!week_requested_ids.length) { return; }
+      if (!confirm('この週の希望中 ' + week_requested_ids.length + ' 件をまとめて確定します。よろしいですか？')) { return; }
+      self.approve(week_requested_ids);
     };
 
     /** 指定した日の希望中をまとめて確定する */
     self.approveDay = function (index) {
-      var ids = self.dayIdsOf(index, 'requested');
-      var day = self.summary()[index];
-      if (!ids.length) { return; }
-      if (!confirm(day.label + ' の希望中 ' + ids.length + ' 件をまとめて確定します。よろしいですか？')) { return; }
-      self.approve(ids);
+      const day_requested_ids = self.dayIdsOf(index, 'requested');
+      const target_day = self.summary()[index];
+      if (!day_requested_ids.length) { return; }
+      if (!confirm(target_day.label + ' の希望中 ' + day_requested_ids.length + ' 件をまとめて確定します。よろしいですか？')) { return; }
+      self.approve(day_requested_ids);
     };
 
     self.approve = function (ids) {
@@ -353,19 +353,19 @@
 
     /** 週全体の確定を取り消して希望中に戻す（確定したあとのやり直し） */
     self.undoWeek = function () {
-      var ids = self.weekApprovedIds();
-      if (!ids.length) { return; }
-      if (!confirm('この週の確定 ' + ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
-      self.undo(ids);
+      const week_approved_ids = self.weekApprovedIds();
+      if (!week_approved_ids.length) { return; }
+      if (!confirm('この週の確定 ' + week_approved_ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
+      self.undo(week_approved_ids);
     };
 
     /** 指定した日の確定を取り消して希望中に戻す */
     self.undoDay = function (index) {
-      var ids = self.dayIdsOf(index, 'approved');
-      var day = self.summary()[index];
-      if (!ids.length) { return; }
-      if (!confirm(day.label + ' の確定 ' + ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
-      self.undo(ids);
+      const day_approved_ids = self.dayIdsOf(index, 'approved');
+      const target_day = self.summary()[index];
+      if (!day_approved_ids.length) { return; }
+      if (!confirm(target_day.label + ' の確定 ' + day_approved_ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
+      self.undo(day_approved_ids);
     };
 
     self.undo = function (ids) {
@@ -390,10 +390,10 @@
 
     self.submitReject = function () {
       // 却下理由は任意。空のままでも却下できる。
-      var reason = self.rejectReason().trim();
+      const reject_reason = self.rejectReason().trim();
 
       self.rejectErrors([]);
-      self.applyStatus(self.rejectIds, 'rejected', reason).then(function () {
+      self.applyStatus(self.rejectIds, 'rejected', reject_reason).then(function () {
         self.showReject(false);
       }).catch(function (err) {
         self.rejectErrors(api.messages(err, '却下に失敗しました。'));

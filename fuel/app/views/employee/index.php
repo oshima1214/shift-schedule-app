@@ -156,10 +156,13 @@
 
 <script>
   // 雇用形態ごとのバッジの色
-  var TYPE_TAG = { full_time: 'sage', part_time: 'blue', part: 'pur' };
+  // 新規登録時に最初から選んでおく部署。DOMの並び順に依存しないようサーバから受け取る。
+  const DEFAULT_DEPARTMENT_ID = <?php echo json_encode($default_department_id); ?>;
+
+  const TYPE_TAG = { full_time: 'sage', part_time: 'blue', part: 'pur' };
 
   function ViewModel() {
-    var self = this;
+    const self = this;
 
     self.typeTag = function (type) { return TYPE_TAG[type] || 'blue'; };
 
@@ -220,7 +223,7 @@
       self.formErrors([]);
       self.form.name('');
       self.form.email('');
-      self.form.department_id(document.querySelector('.modal select').value);
+      self.form.department_id(DEFAULT_DEPARTMENT_ID);
       self.form.employment_type('part_time');
       self.form.role('employee');
       self.form.password('');
@@ -248,7 +251,7 @@
       self.formErrors([]);
       self.saving(true);
 
-      var payload = {
+      const request_payload = {
         name: self.form.name(),
         email: self.form.email(),
         department_id: self.form.department_id(),
@@ -256,11 +259,11 @@
         role: self.form.role(),
         password: self.form.password()
       };
-      var url = self.editingId()
+      const endpoint_url = self.editingId()
         ? '<?php echo Uri::create('employee/update'); ?>/' + self.editingId()
         : '<?php echo Uri::create('employee/create'); ?>';
 
-      api.post(url, payload).then(function () {
+      api.post(endpoint_url, request_payload).then(function () {
         self.saving(false);
         self.showForm(false);
         self.load(self.page());

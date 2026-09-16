@@ -95,7 +95,7 @@
 
 <script>
   function ViewModel() {
-    var self = this;
+    const self = this;
 
     self.rows = ko.observableArray([]);
     self.week = ko.observable('');
