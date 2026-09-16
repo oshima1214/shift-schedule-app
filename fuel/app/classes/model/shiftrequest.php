@@ -43,7 +43,6 @@ class ShiftRequest
         'shift_requests.status',
         'shift_requests.reject_reason',
         array('employees.name', 'employee_name'),
-        array('employees.employment_type', 'employment_type'),
         array('departments.name', 'department_name')
       )
       ->from('shift_requests')

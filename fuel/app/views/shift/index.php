@@ -61,10 +61,11 @@
             <td class="time" data-bind="text: start_time || '−'"></td>
             <td class="time" data-bind="text: end_time || '−'"></td>
             <td>
-              <!-- ko if: status === 'requested' --><span class="state state-requested">希望中</span><!-- /ko -->
-              <!-- ko if: status === 'approved' --><span class="state state-approved">確定</span><!-- /ko -->
+              <!-- 表示名と装飾は状態コードから引く。名前は config/shift.php が唯一の情報源。 -->
+              <!-- ko if: status -->
+              <span class="state" data-bind="css: 'state-' + status, text: STATUS_LABEL[status]"></span>
+              <!-- /ko -->
               <!-- ko if: status === 'rejected' -->
-              <span class="state state-rejected">却下</span>
               <!-- 管理者が入力した却下理由をそのまま見せる -->
               <!-- ko if: reject_reason -->
               <div class="reason" data-bind="text: '理由：' + reject_reason"></div>
@@ -143,6 +144,8 @@
 </div>
 
 <script>
+  const STATUS_LABEL = <?php echo json_encode($statuses, JSON_UNESCAPED_UNICODE); ?>;
+
   const TIME_OPTIONS = <?php echo json_encode($time_options, JSON_UNESCAPED_UNICODE); ?>;
 
   function ViewModel() {
