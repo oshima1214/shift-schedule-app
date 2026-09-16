@@ -14,9 +14,13 @@ class Controller_Employee extends Controller_Base
 
   public function action_index()
   {
+    $departments = \App\Model\Department::find_all();
+
     $view = \View::forge('employee/index');
     $view->set('employee', $this->current_employee);
-    $view->set('departments', \App\Model\Department::find_all());
+    $view->set('departments', $departments);
+    // 新規登録フォームの初期選択。ビュー側でDOMの並び順に頼らないよう、ここで決める。
+    $view->set('default_department_id', $departments ? (string) $departments[0]['id'] : '');
     $view->set('employment_types', \Config::get('shift.employment_type'));
     $view->set('roles', \Config::get('shift.role'));
     $view->set('password_min_length', (int) \Config::get('shift.password.min_length'));

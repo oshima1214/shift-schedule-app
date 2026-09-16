@@ -8,39 +8,39 @@
   'use strict';
 
   function csrfToken() {
-    var m = document.cookie.match(/(?:^|;\s*)fuel_csrf_token=([^;]*)/);
-    return m ? decodeURIComponent(m[1]) : '';
+    const matched_cookie = document.cookie.match(/(?:^|;\s*)fuel_csrf_token=([^;]*)/);
+    return matched_cookie ? decodeURIComponent(matched_cookie[1]) : '';
   }
 
   function handle(res) {
     return res.json().then(function (body) {
       if (!res.ok) {
-        var err = new Error('request failed');
-        err.status = res.status;
-        err.body = body;
-        throw err;
+        const request_error = new Error('request failed');
+        request_error.status = res.status;
+        request_error.body = body;
+        throw request_error;
       }
       return body;
     }).catch(function (e) {
       if (e.body) { throw e; }
-      var err = new Error('invalid response');
-      err.status = res.status;
-      err.body = { errors: ['通信に失敗しました。時間をおいて試してください。'] };
-      throw err;
+      const request_error = new Error('invalid response');
+      request_error.status = res.status;
+      request_error.body = { errors: ['通信に失敗しました。時間をおいて試してください。'] };
+      throw request_error;
     });
   }
 
   window.api = {
     /** GET（クエリはオブジェクトで渡す。空の値は送らない） */
     get: function (url, params) {
-      var q = [];
+      const query_parts = [];
       Object.keys(params || {}).forEach(function (k) {
-        var v = params[k];
-        if (v !== null && v !== undefined && v !== '') {
-          q.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+        const param_value = params[k];
+        if (param_value !== null && param_value !== undefined && param_value !== '') {
+          query_parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(param_value));
         }
       });
-      return fetch(url + (q.length ? '?' + q.join('&') : ''), {
+      return fetch(url + (query_parts.length ? '?' + query_parts.join('&') : ''), {
         credentials: 'same-origin',
         headers: { 'Accept': 'application/json' }
       }).then(handle);
