@@ -41,16 +41,25 @@
     <div class="loading" data-bind="visible: loading">読み込み中…</div>
 
     <div class="tablescroll" data-bind="visible: !loading()">
-      <table>
+      <table class="request-table">
+        <colgroup>
+          <col class="col-department">
+          <col class="col-employee">
+          <col class="col-date">
+          <col class="col-start">
+          <col class="col-end">
+          <col class="col-status">
+          <col class="col-reason">
+        </colgroup>
         <thead>
           <tr>
-            <th style="width:13%">部署</th>
-            <th style="width:16%">従業員</th>
-            <th style="width:11%">日付</th>
-            <th style="width:10%">開始</th>
-            <th style="width:10%">終了</th>
-            <th style="width:12%">状態</th>
-            <th style="width:28%">却下理由</th>
+            <th>部署</th>
+            <th>従業員</th>
+            <th>日付</th>
+            <th>開始</th>
+            <th>終了</th>
+            <th>状態</th>
+            <th>却下理由</th>
           </tr>
         </thead>
         <tbody data-bind="foreach: rows">
@@ -76,9 +85,9 @@
     </div>
 
     <div class="foot">
-      <span><span class="swatch" style="background:var(--warn-bg)"></span>希望中</span>
-      <span><span class="swatch" style="background:var(--ok-bg)"></span>確定</span>
-      <span><span class="swatch" style="background:var(--ng-bg)"></span>却下</span>
+      <span><span class="swatch swatch-requested"></span>希望中</span>
+      <span><span class="swatch swatch-approved"></span>確定</span>
+      <span><span class="swatch swatch-rejected"></span>却下</span>
       <span class="push">確定・却下の操作は「シフト表確定」画面から行います</span>
     </div>
   </div>

@@ -141,6 +141,35 @@ td.none, .none { color: var(--faint); }
 td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 0; }
 .actions { display: flex; gap: 4px; }
 
+/* ---------- 列幅（インラインstyleではなくcolgroupで指定する） ---------- */
+.shift-table,
+.request-table,
+.employee-table { table-layout: fixed; }
+
+.shift-table .col-date   { width: 22%; }
+.shift-table .col-start  { width: 13%; }
+.shift-table .col-end    { width: 13%; }
+.shift-table .col-state  { width: 37%; }
+.shift-table .col-action { width: 15%; }
+
+.request-table .col-department { width: 13%; }
+.request-table .col-employee   { width: 16%; }
+.request-table .col-date       { width: 11%; }
+.request-table .col-start      { width: 10%; }
+.request-table .col-end        { width: 10%; }
+.request-table .col-status     { width: 12%; }
+.request-table .col-reason     { width: 28%; }
+
+.employee-table .col-name       { width: 20%; }
+.employee-table .col-email      { width: 26%; }
+.employee-table .col-department { width: 13%; }
+.employee-table .col-employment { width: 14%; }
+.employee-table .col-role       { width: 12%; }
+.employee-table .col-action     { width: 15%; }
+
+/* マトリクスは従業員列だけ固定し、残り7日分は均等に割り付ける */
+.matrix .col-employee { width: 24%; }
+
 /* ---------- シフト希望入力の一覧 ---------- */
 .shift-table td { padding: 11px 14px; vertical-align: middle; }
 .shift-table .date { font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -208,6 +237,8 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
 .matrix .cell:hover { filter: brightness(.96); }
 .matrix .cell:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 .matrix .empty { color: var(--faint); }
+/* 従業員名に添える部署名 */
+.matrix .sub { color: var(--faint); font-size: 11px; }
 
 /* 日別の人員サマリ（マトリクスのtfoot） */
 .matrix tfoot .sumrow th {
@@ -252,6 +283,8 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
 .field-label { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 4px; }
 .field-label .req { color: var(--ng-fg); }
 .form-grid .inp, .form-grid .sel { width: 100%; }
+/* 開始時刻と終了時刻をつなぐ「〜」 */
+.range-sep { font-size: 12px; color: var(--faint); }
 
 /* 単体フォーム（パスワード変更など） */
 .form-body { padding: 18px; }
@@ -267,12 +300,16 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
   background: var(--tint); font-size: 11.5px; color: var(--muted); flex-wrap: wrap;
 }
 .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+.swatch-requested { background: var(--warn-bg); }
+.swatch-approved  { background: var(--ok-bg); }
+.swatch-rejected  { background: var(--ng-bg); }
 .pager {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   padding: 11px 16px; border-top: 1px solid var(--border);
   background: var(--tint); font-size: 12.5px; color: var(--muted);
 }
 .pager .cur { color: var(--text); font-weight: 600; }
+.pager-total { margin-left: 8px; }
 
 /* ---------- メッセージ ---------- */
 .errors {
@@ -280,6 +317,8 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
   background: var(--ng-bg); color: var(--ng-fg);
   font-size: 12.5px; border-bottom: 1px solid #f0d8d8;
 }
+/* 画面上部ではなくカード内に置くときの見た目（枠なし・角丸） */
+.errors-boxed { border: none; border-radius: 6px; margin-bottom: 14px; }
 .errors ul { margin: 0; padding-left: 18px; }
 .notice {
   margin: 0; padding: 10px 16px;
@@ -312,8 +351,12 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
 /* ---------- モーダル ---------- */
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(31,31,30,.4);
-  display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10;
+  display: none; align-items: center; justify-content: center; padding: 20px; z-index: 10;
 }
+/* 既定は非表示。Knockoutの css バインディングで is-open を付けて開く。
+   visible バインディングだと style="display:none" をHTML側に書く必要があり、
+   規約10（インラインCSS禁止）に反するためこの形にしている。 */
+.modal-backdrop.is-open { display: flex; }
 .modal {
   background: var(--surface); border-radius: 10px; width: 520px; max-width: 100%;
   max-height: 90vh; overflow-y: auto;
@@ -328,3 +371,6 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
   display: flex; justify-content: flex-end; gap: 8px;
 }
 .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+/* 却下理由モーダル */
+.reject-target { margin: 0 0 10px; }
+.reject-input { width: 100%; resize: vertical; }
