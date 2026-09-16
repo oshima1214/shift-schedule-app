@@ -48,7 +48,7 @@
 
     <!-- 出勤者が0人の日は見落としやすいので、表の上でも知らせる。
          そもそも希望が1件もない週は、表の「提出されたシフト希望はありません」で足りるので出さない。 -->
-    <div class="warnbar" data-bind="visible: !loading() && rows().length && zeroDayLabels().length">
+    <div class="warn-bar" data-bind="visible: !loading() && rows().length && zeroDayLabels().length">
       <strong>確定した出勤者がいない日があります：</strong>
       <span data-bind="text: zeroDayLabels().join('　')"></span>
     </div>
@@ -59,7 +59,7 @@
 
     <div class="loading" data-bind="visible: loading">読み込み中…</div>
 
-    <div class="tablescroll" data-bind="visible: !loading()">
+    <div class="table-scroll" data-bind="visible: !loading()">
       <table class="matrix">
         <colgroup>
           <col class="col-employee">
@@ -108,14 +108,14 @@
 
         <!-- 日別の人員サマリ。確定人員が0の日をひと目で分かるようにする -->
         <tfoot data-bind="visible: rows().length">
-          <tr class="sumrow">
+          <tr class="sum-row">
             <th>確定人員</th>
             <!-- ko foreach: summary -->
             <td>
               <span class="count" data-bind="text: approved + '人', css: { zero: is_zero }"></span>
               <!-- 確定した日をその日だけ希望中に戻せるようにする -->
               <!-- ko if: approved -->
-              <button class="minibtn"
+              <button class="mini-btn"
                 data-bind="click: function (data, event) { $parent.undoDay($index()); },
                   disable: $parent.saving,
                   attr: { title: label + 'の確定を取り消して希望中に戻します' }">取消</button>
@@ -123,12 +123,12 @@
             </td>
             <!-- /ko -->
           </tr>
-          <tr class="sumrow">
+          <tr class="sum-row">
             <th>希望中</th>
             <!-- ko foreach: summary -->
             <td>
               <!-- ko if: requested -->
-              <button class="minibtn"
+              <button class="mini-btn"
                 data-bind="text: requested + '件を確定',
                   click: function (data, event) { $parent.approveDay($index()); },
                   disable: $parent.saving,

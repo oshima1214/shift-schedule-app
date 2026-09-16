@@ -129,7 +129,7 @@ h1 { font-size: 19px; font-weight: 600; margin: 0 0 4px; }
 .sage { background: var(--sage-bg); color: var(--sage-fg); }
 
 /* ---------- 表 ---------- */
-.tablescroll { overflow-x: auto; }
+.table-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 th {
   text-align: left; font-weight: 600; color: var(--muted);
@@ -197,34 +197,34 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
 .state-none::before { background: none; border: 1px dashed currentColor; }
 
 /* 操作：枠線のないアイコンボタンにして、行の中の四角を減らす */
-.rowactions { display: flex; align-items: center; gap: 2px; min-height: 26px; }
-.iconbtn {
+.row-actions { display: flex; align-items: center; gap: 2px; min-height: 26px; }
+.icon-btn {
   border: none; background: none; padding: 0; margin: 0;
   width: 28px; height: 26px; border-radius: 6px;
   display: inline-flex; align-items: center; justify-content: center;
   color: var(--faint); cursor: pointer;
 }
-.iconbtn svg { width: 15px; height: 15px; display: block; }
-.iconbtn:hover { background: var(--tint); color: var(--text); }
-.iconbtn.is-danger:hover { background: var(--ng-bg); color: var(--ng-fg); }
-.iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.icon-btn svg { width: 15px; height: 15px; display: block; }
+.icon-btn:hover { background: var(--tint); color: var(--text); }
+.icon-btn.is-danger:hover { background: var(--ng-bg); color: var(--ng-fg); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* 未提出の行の主操作は、枠線なしのテキストボタンで軽く見せる */
-.addbtn {
+.add-btn {
   border: none; background: none; padding: 3px 8px 3px 4px; border-radius: 6px;
   display: inline-flex; align-items: center; gap: 4px;
   color: var(--accent); font-size: 12px; font-family: inherit; cursor: pointer;
 }
-.addbtn svg { width: 14px; height: 14px; }
-.addbtn:hover { background: #eaf0ed; }
-.addbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.add-btn svg { width: 14px; height: 14px; }
+.add-btn:hover { background: #eaf0ed; }
+.add-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* 変更できない行はアイコンだけを置く */
-.lockmark {
+.lock-mark {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 26px; color: var(--faint);
 }
-.lockmark svg { width: 14px; height: 14px; }
+.lock-mark svg { width: 14px; height: 14px; }
 
 /* ---------- マトリクス（シフト表） ---------- */
 .matrix { table-layout: fixed; }
@@ -241,11 +241,11 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
 .matrix .sub { color: var(--faint); font-size: 11px; }
 
 /* 日別の人員サマリ（マトリクスのtfoot） */
-.matrix tfoot .sumrow th {
+.matrix tfoot .sum-row th {
   border-top: 1px solid var(--border);
   text-align: left; padding-left: 14px;
 }
-.matrix tfoot .sumrow td {
+.matrix tfoot .sum-row td {
   border-top: 1px solid var(--border);
   background: var(--tint);
   vertical-align: middle;
@@ -257,15 +257,15 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
   background: var(--ng-bg); border-radius: 4px; padding: 1px 6px;
 }
 /* 列（日）単位の一括確定ボタン */
-.minibtn {
+.mini-btn {
   font-size: 10.5px; line-height: 1.5;
   padding: 2px 6px; border: 1px solid #cfcdc6; border-radius: 5px;
   background: var(--surface); color: var(--text);
   font-family: inherit; cursor: pointer; white-space: nowrap;
 }
-.minibtn:hover { background: #eaf0ed; border-color: var(--accent); color: var(--accent); }
-.minibtn:disabled { opacity: .5; cursor: default; }
-.minibtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mini-btn:hover { background: #eaf0ed; border-color: var(--accent); color: var(--accent); }
+.mini-btn:disabled { opacity: .5; cursor: default; }
+.mini-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---------- 却下理由 ---------- */
 /* シフト希望入力画面で、却下された行に理由を添える */
@@ -326,7 +326,7 @@ td.ellip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-w
   font-size: 12.5px; border-bottom: 1px solid #cfe8de;
 }
 /* 出勤者ゼロの日など、表の前に出す注意書き */
-.warnbar {
+.warn-bar {
   margin: 0; padding: 10px 16px;
   background: var(--warn-bg); color: var(--warn-fg);
   font-size: 12.5px; border-bottom: 1px solid #f0dfc2;

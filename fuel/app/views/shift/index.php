@@ -33,7 +33,7 @@
 
     <div class="loading" data-bind="visible: loading">読み込み中…</div>
 
-    <div class="tablescroll" data-bind="visible: !loading()">
+    <div class="table-scroll" data-bind="visible: !loading()">
       <table class="shift-table">
         <colgroup>
           <col class="col-date">
@@ -75,16 +75,16 @@
               <!-- ko ifnot: status --><span class="state state-none">未提出</span><!-- /ko -->
             </td>
             <td>
-              <div class="rowactions">
+              <div class="row-actions">
                 <!-- ko if: status === 'requested' -->
-                <button class="iconbtn" title="編集する" aria-label="このシフト希望を編集する"
+                <button class="icon-btn" title="編集する" aria-label="このシフト希望を編集する"
                   data-bind="click: $parent.startEdit">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>
                   </svg>
                 </button>
-                <button class="iconbtn is-danger" title="削除する" aria-label="このシフト希望を削除する"
+                <button class="icon-btn is-danger" title="削除する" aria-label="このシフト希望を削除する"
                   data-bind="click: $parent.removeRow">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -95,7 +95,7 @@
                 <!-- /ko -->
 
                 <!-- ko if: status === 'approved' || status === 'rejected' -->
-                <span class="lockmark"
+                <span class="lock-mark"
                   data-bind="attr: { title: status === 'approved' ? '確定済みのため変更できません' : '却下済みのため変更できません' }">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round" role="img"
@@ -106,7 +106,7 @@
                 <!-- /ko -->
 
                 <!-- ko ifnot: status -->
-                <button class="addbtn" aria-label="この日のシフト希望を登録する"
+                <button class="add-btn" aria-label="この日のシフト希望を登録する"
                   data-bind="click: $parent.startCreate">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" aria-hidden="true">

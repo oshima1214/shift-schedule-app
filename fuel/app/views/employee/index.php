@@ -45,7 +45,7 @@
 
     <div class="loading" data-bind="visible: loading">読み込み中…</div>
 
-    <div class="tablescroll" data-bind="visible: !loading()">
+    <div class="table-scroll" data-bind="visible: !loading()">
       <table class="employee-table">
         <colgroup>
           <col class="col-name">
