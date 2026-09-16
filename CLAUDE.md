@@ -13,7 +13,10 @@
 ## コーディング規約
 - DB操作は必ずDBクラス（クエリビルダ）を使う。生SQLの文字列連結は禁止
 - Controllerのbefore()でログインチェックとCSRFトークンの準備を行う
-- ビューでの出力は必ずエスケープする（knockoutのhtmlバインディングは使わない）
+- ビューの出力はauto_filter_outputで自動エスケープされる。$view->set()した値に
+  e()を重ねない（二重エスケープになる）。knockoutのhtmlバインディングは使わない
+- 日時の比較は両辺をDB側の時計に揃える。PHPはAsia/Tokyo、MySQLはUTCで9時間ずれる。
+  NOW()で作った値はNOW()と比べる（PHPのdate()と混ぜない）
 - 削除はdeleted_atによる論理削除。物理削除はしない
 - アプリ固有の設定値はfuel/app/config/shift.phpに置き、Config::get()で参照する
 - namespaceを使ってクラスを整理する
@@ -35,9 +38,12 @@ IPA「安全なウェブサイトの作り方」に沿って以下を実装す�
 - 接続設定はfuel/app/config/development/db.phpにあり、gitignoreされている
 - アプリコンテナからの接続先はホスト名db、ポート3306
 - テーブル定義はdb/schema.sqlを参照
+- スキーマを変えたらマイグレーション・db/schema.sql・docs/DB設計.csvの3つを揃える
 
 ## Git運用
 - mainへの直接コミットは禁止
+- featureを切る前にdevelopをpullする。古いdevelopから切らない
 - developから機能ごとにfeature/xxxブランチを切る
 - featureからdevelopへPRを出してマージする
+- PRはマージコミットで取り込む（squashしない）
 - コミットメッセージは日本語で、何を実装したかを書く
