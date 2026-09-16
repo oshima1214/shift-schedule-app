@@ -14,7 +14,7 @@ class ShiftRequest
 	 */
 	public static function find_own_week($employee_id, $from, $to)
 	{
-		return \DB::select('id', 'work_date', 'start_time', 'end_time', 'status')
+		return \DB::select('id', 'work_date', 'start_time', 'end_time', 'status', 'reject_reason')
 			->from('shift_requests')
 			->where('employee_id', $employee_id)
 			->where('deleted_at', null)
@@ -41,6 +41,7 @@ class ShiftRequest
 				'shift_requests.start_time',
 				'shift_requests.end_time',
 				'shift_requests.status',
+				'shift_requests.reject_reason',
 				array('employees.name', 'employee_name'),
 				array('employees.employment_type', 'employment_type'),
 				array('departments.name', 'department_name')
@@ -72,7 +73,7 @@ class ShiftRequest
 	 */
 	public static function find($id)
 	{
-		$row = \DB::select('id', 'employee_id', 'work_date', 'start_time', 'end_time', 'status')
+		$row = \DB::select('id', 'employee_id', 'work_date', 'start_time', 'end_time', 'status', 'reject_reason')
 			->from('shift_requests')
 			->where('id', $id)
 			->where('deleted_at', null)
@@ -159,15 +160,70 @@ class ShiftRequest
 	/**
 	 * 管理者による状態変更（確定／却下／希望中に戻す）
 	 *
-	 * @param int    $id
-	 * @param string $status
+	 * @param int         $id
+	 * @param string      $status
+	 * @param string|null $reject_reason  却下以外のときは無視してnullで保存する
 	 * @return int  更新件数
 	 */
-	public static function set_status($id, $status)
+	public static function set_status($id, $status, $reject_reason = null)
 	{
+		return static::set_status_bulk(array($id), $status, $reject_reason);
+	}
+
+	/**
+	 * 複数のシフト希望をまとめて状態変更する（S04の一括確定）。
+	 * 論理削除済みは対象外。
+	 *
+	 * @param array       $ids
+	 * @param string      $status
+	 * @param string|null $reject_reason
+	 * @return int  更新件数
+	 */
+	public static function set_status_bulk(array $ids, $status, $reject_reason = null)
+	{
+		if (empty($ids))
+		{
+			return 0;
+		}
+
 		return \DB::update('shift_requests')
-			->set(array('status' => $status))
-			->where('id', $id)
+			->set(array(
+				'status' => $status,
+				// 却下から他の状態へ戻したときに古い理由が残らないようにする
+				'reject_reason' => $status === 'rejected' ? $reject_reason : null,
+			))
+			->where('id', 'in', $ids)
+			->where('deleted_at', null)
 			->execute();
+	}
+
+	/**
+	 * 指定したIDのうち、実在する（論理削除されていない）ものだけを返す。
+	 * 一括操作の前に、存在しないIDが混ざっていないか確かめるために使う。
+	 *
+	 * @param array $ids
+	 * @return array  IDの配列
+	 */
+	public static function find_existing_ids(array $ids)
+	{
+		if (empty($ids))
+		{
+			return array();
+		}
+
+		$rows = \DB::select('id')
+			->from('shift_requests')
+			->where('id', 'in', $ids)
+			->where('deleted_at', null)
+			->execute()
+			->as_array();
+
+		$found = array();
+		foreach ($rows as $row)
+		{
+			$found[] = (int) $row['id'];
+		}
+
+		return $found;
 	}
 }

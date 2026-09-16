@@ -1,6 +1,6 @@
 <?php
 /**
- * S01 ログイン画面 / F01 ログイン・ログアウト
+ * S01 ログイン画面 / F01 ログイン・ログアウト / F18 ログイン試行回数の制限
  * ログイン前でもアクセスできる必要があるため Controller_Base は継承しない。
  */
 class Controller_Auth extends \Controller
@@ -47,14 +47,21 @@ class Controller_Auth extends \Controller
 			$email    = trim((string) \Input::post('email'));
 			$password = (string) \Input::post('password');
 
-			$employee = \App\Model\Employee::authenticate($email, $password);
+			$result = \App\Model\Employee::authenticate($email, $password);
 
-			if ($employee === null)
+			if ($result['status'] === 'locked')
 			{
+				$error = static::lock_message($result['lock_seconds']);
+			}
+			elseif ($result['status'] !== 'ok')
+			{
+				// どちらが誤りかは伝えない（アカウントの存在を推測させないため）
 				$error = 'メールアドレスまたはパスワードが正しくありません。';
 			}
 			else
 			{
+				$employee = $result['employee'];
+
 				// セッション固定攻撃対策としてログイン成功時にセッションIDを再発行する。
 				// 権限が変わるタイミングなのでCSRFトークンもここで作り直す。
 				\Session::rotate();
@@ -69,8 +76,24 @@ class Controller_Auth extends \Controller
 
 		$view = \View::forge('auth/login');
 		$view->set('error', $error);
+		$view->set('max_attempts', (int) \Config::get('shift.login.max_attempts'));
+		$view->set('lockout_minutes', (int) \Config::get('shift.login.lockout_minutes'));
 
 		return \Response::forge($view);
+	}
+
+	/**
+	 * ロック中であることと、あと何分待てばよいかを伝える
+	 *
+	 * @param int $seconds  ロック解除までの残り秒数
+	 * @return string
+	 */
+	private static function lock_message($seconds)
+	{
+		$minutes = max(1, (int) ceil($seconds / 60));
+
+		return 'ログインの失敗が続いたため、このアカウントを一時的にロックしています。'
+			.'約'.$minutes.'分後に、もう一度お試しください。';
 	}
 
 	/**

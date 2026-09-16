@@ -44,12 +44,13 @@
 			<table>
 				<thead>
 					<tr>
-						<th style="width:16%">部署</th>
-						<th style="width:20%">従業員</th>
-						<th style="width:14%">日付</th>
-						<th style="width:14%">開始</th>
-						<th style="width:14%">終了</th>
-						<th style="width:22%">状態</th>
+						<th style="width:13%">部署</th>
+						<th style="width:16%">従業員</th>
+						<th style="width:11%">日付</th>
+						<th style="width:10%">開始</th>
+						<th style="width:10%">終了</th>
+						<th style="width:12%">状態</th>
+						<th style="width:28%">却下理由</th>
 					</tr>
 				</thead>
 				<tbody data-bind="foreach: rows">
@@ -63,6 +64,10 @@
 							<!-- ko if: status === 'requested' --><span class="tag warn">希望中</span><!-- /ko -->
 							<!-- ko if: status === 'approved' --><span class="tag ok">確定</span><!-- /ko -->
 							<!-- ko if: status === 'rejected' --><span class="tag ng">却下</span><!-- /ko -->
+						</td>
+						<td class="sub">
+							<!-- ko if: reject_reason --><span data-bind="text: reject_reason"></span><!-- /ko -->
+							<!-- ko ifnot: reject_reason --><span class="none">−</span><!-- /ko -->
 						</td>
 					</tr>
 				</tbody>

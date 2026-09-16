@@ -37,11 +37,11 @@
 			<table class="shift-table">
 				<thead>
 					<tr>
-						<th style="width:26%">日付</th>
-						<th style="width:20%">開始</th>
-						<th style="width:20%">終了</th>
-						<th style="width:18%">状態</th>
-						<th style="width:16%">操作</th>
+						<th style="width:22%">日付</th>
+						<th style="width:13%">開始</th>
+						<th style="width:13%">終了</th>
+						<th style="width:37%">状態</th>
+						<th style="width:15%">操作</th>
 					</tr>
 				</thead>
 				<tbody data-bind="foreach: rows">
@@ -55,7 +55,16 @@
 						<td>
 							<!-- ko if: status === 'requested' --><span class="state state-requested">希望中</span><!-- /ko -->
 							<!-- ko if: status === 'approved' --><span class="state state-approved">確定</span><!-- /ko -->
-							<!-- ko if: status === 'rejected' --><span class="state state-rejected">却下</span><!-- /ko -->
+							<!-- ko if: status === 'rejected' -->
+							<span class="state state-rejected">却下</span>
+							<!-- 管理者が入力した却下理由をそのまま見せる -->
+							<!-- ko if: reject_reason -->
+							<div class="reason" data-bind="text: '理由：' + reject_reason"></div>
+							<!-- /ko -->
+							<!-- ko ifnot: reject_reason -->
+							<div class="reason reason-none">理由の記載はありません</div>
+							<!-- /ko -->
+							<!-- /ko -->
 							<!-- ko ifnot: status --><span class="state state-none">未提出</span><!-- /ko -->
 						</td>
 						<td>

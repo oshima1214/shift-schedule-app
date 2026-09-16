@@ -19,6 +19,9 @@ else
 		'shift' => array('url' => 'shift', 'label' => 'シフト希望入力'),
 	);
 }
+
+// パスワード変更は権限によらず本人が使う
+$menu['account'] = array('url' => 'account/password', 'label' => 'パスワード変更');
 ?>
 <header class="appbar">
 	<div class="appbar-inner">
