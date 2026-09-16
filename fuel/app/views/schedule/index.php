@@ -186,7 +186,8 @@
 <script>
   // 希望中 → 確定 → 却下 → 希望中 の順に回す
   const STATUS_ORDER = ['requested', 'approved', 'rejected'];
-  const STATUS_LABEL = { requested: '希望中', approved: '確定', rejected: '却下' };
+  // 状態の表示名は config/shift.php を唯一の情報源にする
+  const STATUS_LABEL = <?php echo json_encode($statuses, JSON_UNESCAPED_UNICODE); ?>;
 
   function ViewModel() {
     const self = this;

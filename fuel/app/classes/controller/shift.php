@@ -13,6 +13,7 @@ class Controller_Shift extends Controller_Base
     $view->set('employee', $this->current_employee);
     $view->set('menu', $this->nav_menu());
     $view->set('employment_label', \Arr::get(\Config::get('shift.employment_type'), $this->current_employee['employment_type'], ''));
+    $view->set('statuses', \Config::get('shift.status'));
     $view->set('time_options', static::time_options());
 
     return \Response::forge($view);
