@@ -35,13 +35,20 @@
 
     <div class="tablescroll" data-bind="visible: !loading()">
       <table class="shift-table">
+        <colgroup>
+          <col class="col-date">
+          <col class="col-start">
+          <col class="col-end">
+          <col class="col-state">
+          <col class="col-action">
+        </colgroup>
         <thead>
           <tr>
-            <th style="width:22%">日付</th>
-            <th style="width:13%">開始</th>
-            <th style="width:13%">終了</th>
-            <th style="width:37%">状態</th>
-            <th style="width:15%">操作</th>
+            <th>日付</th>
+            <th>開始</th>
+            <th>終了</th>
+            <th>状態</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody data-bind="foreach: rows">
@@ -121,7 +128,7 @@
         <select class="sel" data-bind="options: selectableDays, optionsText: 'label', optionsValue: 'date',
           value: form.work_date, enable: selectableDays().length"></select>
         <select class="sel" data-bind="options: timeOptions, value: form.start_time, enable: selectableDays().length"></select>
-        <span style="font-size:12px;color:var(--faint)">〜</span>
+        <span class="range-sep">〜</span>
         <select class="sel" data-bind="options: timeOptions, value: form.end_time, enable: selectableDays().length"></select>
         <button class="btn btn-primary"
           data-bind="click: submit, disable: saving() || !selectableDays().length, text: editingId() ? '更新' : '登録'"></button>

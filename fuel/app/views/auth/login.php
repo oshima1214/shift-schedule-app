@@ -12,7 +12,7 @@
     <div class="login-title">シフト表作成アプリ</div>
 
     <?php if ($error): ?>
-      <div class="errors" style="border-radius:6px;margin-bottom:14px;border:none;"><?php echo $error; ?></div>
+      <div class="errors errors-boxed"><?php echo $error; ?></div>
     <?php endif; ?>
 
     <?php echo Form::open(array('action' => 'auth/login', 'method' => 'post')); ?>

@@ -46,15 +46,23 @@
     <div class="loading" data-bind="visible: loading">読み込み中…</div>
 
     <div class="tablescroll" data-bind="visible: !loading()">
-      <table>
+      <table class="employee-table">
+        <colgroup>
+          <col class="col-name">
+          <col class="col-email">
+          <col class="col-department">
+          <col class="col-employment">
+          <col class="col-role">
+          <col class="col-action">
+        </colgroup>
         <thead>
           <tr>
-            <th style="width:20%">氏名</th>
-            <th style="width:26%">メールアドレス</th>
-            <th style="width:13%">部署</th>
-            <th style="width:14%">雇用形態</th>
-            <th style="width:12%">権限</th>
-            <th style="width:15%">操作</th>
+            <th>氏名</th>
+            <th>メールアドレス</th>
+            <th>部署</th>
+            <th>雇用形態</th>
+            <th>権限</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody data-bind="foreach: rows">
@@ -82,18 +90,18 @@
       <button class="btn" data-bind="click: prevPage, disable: page() <= 1">前へ</button>
       <span><span class="cur" data-bind="text: page"></span> / <span data-bind="text: totalPages"></span></span>
       <button class="btn" data-bind="click: nextPage, disable: page() >= totalPages()">次へ</button>
-      <span style="margin-left:8px">全 <span data-bind="text: total"></span> 件</span>
+      <span class="pager-total">全 <span data-bind="text: total"></span> 件</span>
     </div>
   </div>
 </div>
 
 <!-- 登録・編集フォーム -->
-<div class="modal-backdrop" data-bind="visible: showForm" style="display:none">
+<div class="modal-backdrop" data-bind="css: { 'is-open': showForm }">
   <div class="modal">
     <div class="modal-head" data-bind="text: editingId() ? '従業員情報の編集' : '従業員の新規登録'"></div>
 
     <div class="modal-body">
-      <div class="errors" data-bind="visible: formErrors().length" style="border:none;border-radius:6px;margin-bottom:14px">
+      <div class="errors errors-boxed" data-bind="visible: formErrors().length">
         <ul data-bind="foreach: formErrors"><li data-bind="text: $data"></li></ul>
       </div>
 

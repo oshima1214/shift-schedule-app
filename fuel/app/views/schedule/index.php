@@ -61,9 +61,19 @@
 
     <div class="tablescroll" data-bind="visible: !loading()">
       <table class="matrix">
+        <colgroup>
+          <col class="col-employee">
+          <col class="col-day">
+          <col class="col-day">
+          <col class="col-day">
+          <col class="col-day">
+          <col class="col-day">
+          <col class="col-day">
+          <col class="col-day">
+        </colgroup>
         <thead>
           <tr>
-            <th style="width:24%">従業員</th>
+            <th>従業員</th>
             <!-- ko foreach: days -->
             <th data-bind="text: dow"></th>
             <!-- /ko -->
@@ -73,7 +83,7 @@
           <tr>
             <td>
               <span data-bind="text: employee_name"></span>
-              <span class="sub" style="color:var(--faint);font-size:11px" data-bind="text: ' / ' + department_name"></span>
+              <span class="sub" data-bind="text: ' / ' + department_name"></span>
             </td>
             <!-- ko foreach: cells -->
             <td>
@@ -136,28 +146,28 @@
     </div>
 
     <div class="foot">
-      <span><span class="swatch" style="background:var(--warn-bg)"></span>希望中</span>
-      <span><span class="swatch" style="background:var(--ok-bg)"></span>確定</span>
-      <span><span class="swatch" style="background:var(--ng-bg)"></span>却下</span>
+      <span><span class="swatch swatch-requested"></span>希望中</span>
+      <span><span class="swatch swatch-approved"></span>確定</span>
+      <span><span class="swatch swatch-rejected"></span>却下</span>
       <span class="push">セルをクリックで状態切替／確定は「取消」でいつでも希望中に戻せます</span>
     </div>
   </div>
 </div>
 
 <!-- 却下理由の入力 -->
-<div class="modal-backdrop" data-bind="visible: showReject" style="display:none">
+<div class="modal-backdrop" data-bind="css: { 'is-open': showReject }">
   <div class="modal">
     <div class="modal-head">却下理由の入力</div>
 
     <div class="modal-body">
-      <div class="errors" data-bind="visible: rejectErrors().length" style="border:none;border-radius:6px;margin-bottom:14px">
+      <div class="errors errors-boxed" data-bind="visible: rejectErrors().length">
         <ul data-bind="foreach: rejectErrors"><li data-bind="text: $data"></li></ul>
       </div>
 
-      <p class="hint" style="margin:0 0 10px" data-bind="text: rejectTargetLabel"></p>
+      <p class="hint reject-target" data-bind="text: rejectTargetLabel"></p>
 
       <label class="field-label" for="reject_reason">却下理由（任意）</label>
-      <textarea class="inp" id="reject_reason" rows="3" style="width:100%;resize:vertical"
+      <textarea class="inp reject-input" id="reject_reason" rows="3"
         maxlength="<?php echo (int) $reason_max_length; ?>"
         data-bind="value: rejectReason, valueUpdate: 'input'"></textarea>
       <div class="hint">
