@@ -11,14 +11,23 @@
    cd docker
    ```
 
-2. イメージをビルドしてコンテナを起動する。
+2. `docker/.env` を作成する（gitignore対象、各自ローカルで作成）。
+   CSRFトークン生成に使う `APP_TOKEN_SALT` を設定する。未設定のまま
+   `docker-compose up` するとエラーで停止する。
+
+   ```
+   cp .env.example .env
+   openssl rand -hex 32     # 出力した値を .env の APP_TOKEN_SALT に貼る
+   ```
+
+3. イメージをビルドしてコンテナを起動する。
 
    ```
    docker-compose build
    docker-compose up -d
    ```
 
-3. `fuel/app/config/development/db.php` を作成する（gitignore対象、各自ローカルで作成）。
+4. `fuel/app/config/development/db.php` を作成する（gitignore対象、各自ローカルで作成）。
    接続先はホストではなく `db` サービスを指す。
 
    ```php
@@ -33,7 +42,7 @@
    );
    ```
 
-4. コンテナ内でマイグレーションを実行する。デモ用の部署・従業員・シフト希望も同時に投入される。
+5. コンテナ内でマイグレーションを実行する。デモ用の部署・従業員・シフト希望も同時に投入される。
 
    ```
    docker exec -w /var/www/html/my_fuel_project fuelphp-app php oil refine migrate
@@ -41,7 +50,7 @@
 
    テーブル定義の参照用に `db/schema.sql` を置いている（実際の作成はマイグレーション）。
 
-5. ブラウザで http://localhost/ を開くとログイン画面が表示される。
+6. ブラウザで http://localhost/ を開くとログイン画面が表示される。
 
 ### 構成
 
