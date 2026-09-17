@@ -6,6 +6,10 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
     container_name: fuelphp-app
+    environment:
+      # CSRFトークン生成に使うsalt。値はリポジトリに入れず docker/.env で与える。
+      # 未設定だと空文字になるため、.env.example をコピーして必ず設定する。
+      APP_TOKEN_SALT: ${APP_TOKEN_SALT:?docker/.env に APP_TOKEN_SALT を設定してください}
     ports:
       - "80:80"
     volumes:
