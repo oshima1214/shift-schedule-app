@@ -107,22 +107,22 @@
     self.loading = ko.observable(true);
     self.errors = ko.observableArray([]);
 
-    self.load = function (week) {
+    self.load = function (week_start_date) {
       self.loading(true);
       self.errors([]);
       api.get('<?php echo Uri::create('request/list'); ?>', {
-        week: week,
+        week: week_start_date,
         department_id: self.departmentId()
-      }).then(function (body) {
-        self.rows(body.rows);
-        self.week(body.week);
-        self.weekLabel(body.label);
-        self.prev(body.prev_week);
-        self.next(body.next_week);
+      }).then(function (response_body) {
+        self.rows(response_body.rows);
+        self.week(response_body.week);
+        self.weekLabel(response_body.label);
+        self.prev(response_body.prev_week);
+        self.next(response_body.next_week);
         self.loading(false);
-      }).catch(function (err) {
+      }).catch(function (request_error) {
         self.loading(false);
-        self.errors(api.messages(err, '一覧の取得に失敗しました。'));
+        self.errors(api.messages(request_error, '一覧の取得に失敗しました。'));
       });
     };
 

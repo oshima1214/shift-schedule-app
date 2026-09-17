@@ -117,7 +117,7 @@
               <!-- 確定した日をその日だけ希望中に戻せるようにする -->
               <!-- ko if: approved -->
               <button class="mini-btn"
-                data-bind="click: function (data, event) { $parent.undoDay($index()); },
+                data-bind="click: function () { $parent.undoDay($index()); },
                   disable: $parent.saving,
                   attr: { title: label + 'の確定を取り消して希望中に戻します' }">取消</button>
               <!-- /ko -->
@@ -131,7 +131,7 @@
               <!-- ko if: requested -->
               <button class="mini-btn"
                 data-bind="text: requested + '件を確定',
-                  click: function (data, event) { $parent.approveDay($index()); },
+                  click: function () { $parent.approveDay($index()); },
                   disable: $parent.saving,
                   attr: { title: label + 'の希望中をまとめて確定します' }"></button>
               <!-- /ko -->
@@ -213,30 +213,30 @@
 
     /** 確定した出勤者が0人の日 */
     self.zeroDayLabels = ko.computed(function () {
-      return self.summary().filter(function (day) {
-        return day.is_zero;
-      }).map(function (day) {
-        return day.label;
+      return self.summary().filter(function (summary_day) {
+        return summary_day.is_zero;
+      }).map(function (summary_day) {
+        return summary_day.label;
       });
     });
 
     /** 表示中の週から、指定した状態のセルのIDを集める */
-    self.weekIdsOf = function (status) {
+    self.weekIdsOf = function (status_code) {
       const matched_request_ids = [];
-      self.rows().forEach(function (row) {
-        row.cells.forEach(function (cell) {
-          if (cell && cell.status === status) { matched_request_ids.push(cell.id); }
+      self.rows().forEach(function (employee_row) {
+        employee_row.cells.forEach(function (shift_cell) {
+          if (shift_cell && shift_cell.status === status_code) { matched_request_ids.push(shift_cell.id); }
         });
       });
       return matched_request_ids;
     };
 
     /** 指定した曜日（列）から、指定した状態のセルのIDを集める */
-    self.dayIdsOf = function (index, status) {
+    self.dayIdsOf = function (day_index, status_code) {
       const day_request_ids = [];
-      self.rows().forEach(function (row) {
-        const target_cell = row.cells[index];
-        if (target_cell && target_cell.status === status) { day_request_ids.push(target_cell.id); }
+      self.rows().forEach(function (employee_row) {
+        const target_cell = employee_row.cells[day_index];
+        if (target_cell && target_cell.status === status_code) { day_request_ids.push(target_cell.id); }
       });
       return day_request_ids;
     };
@@ -245,31 +245,31 @@
     self.weekApprovedIds = ko.computed(function () { return self.weekIdsOf('approved'); });
 
     /** セルのツールチップ。却下済みは理由も見せる */
-    self.cellTitle = function (cell) {
-      if (cell.status === 'rejected' && cell.reject_reason) {
-        return '却下理由：' + cell.reject_reason + '（クリックで状態を切り替え）';
+    self.cellTitle = function (shift_cell) {
+      if (shift_cell.status === 'rejected' && shift_cell.reject_reason) {
+        return '却下理由：' + shift_cell.reject_reason + '（クリックで状態を切り替え）';
       }
       return 'クリックで状態を切り替え';
     };
 
-    self.load = function (week) {
+    self.load = function (week_start_date) {
       self.loading(true);
       self.errors([]);
       api.get('<?php echo Uri::create('schedule/list'); ?>', {
-        week: week,
+        week: week_start_date,
         department_id: self.departmentId()
-      }).then(function (body) {
-        self.days(body.days);
-        self.rows(body.rows);
-        self.summary(body.summary);
-        self.week(body.week);
-        self.weekLabel(body.label);
-        self.prev(body.prev_week);
-        self.next(body.next_week);
+      }).then(function (response_body) {
+        self.days(response_body.days);
+        self.rows(response_body.rows);
+        self.summary(response_body.summary);
+        self.week(response_body.week);
+        self.weekLabel(response_body.label);
+        self.prev(response_body.prev_week);
+        self.next(response_body.next_week);
         self.loading(false);
-      }).catch(function (err) {
+      }).catch(function (request_error) {
         self.loading(false);
-        self.errors(api.messages(err, '一覧の取得に失敗しました。'));
+        self.errors(api.messages(request_error, '一覧の取得に失敗しました。'));
       });
     };
 
@@ -285,47 +285,47 @@
     /**
      * 状態変更を送る。1件なら単体API、複数なら一括APIを使う。
      *
-     * @param {number[]} ids
-     * @param {string}   status
-     * @param {string}   reason  却下理由（却下以外ではサーバ側で無視される）
+     * @param {number[]} request_ids
+     * @param {string}   status_code
+     * @param {string}   reject_reason  却下理由（却下以外ではサーバ側で無視される）
      */
-    self.applyStatus = function (ids, status, reason) {
-      const is_single_target = ids.length === 1;
+    self.applyStatus = function (request_ids, status_code, reject_reason) {
+      const is_single_target = request_ids.length === 1;
       const endpoint_url = is_single_target
-        ? '<?php echo Uri::create('schedule/status'); ?>/' + ids[0]
+        ? '<?php echo Uri::create('schedule/status'); ?>/' + request_ids[0]
         : '<?php echo Uri::create('schedule/bulk_status'); ?>';
-      const request_payload = { status: status, reject_reason: reason || '' };
+      const request_payload = { status: status_code, reject_reason: reject_reason || '' };
 
-      if (!is_single_target) { request_payload.ids = ids; }
+      if (!is_single_target) { request_payload.ids = request_ids; }
 
       self.saving(true);
 
-      return api.post(endpoint_url, request_payload).then(function (body) {
+      return api.post(endpoint_url, request_payload).then(function (response_body) {
         self.saving(false);
         // 人員サマリも作り直す必要があるため、週ごと読み直す
         self.load(self.week());
-        return body;
-      }).catch(function (err) {
+        return response_body;
+      }).catch(function (request_error) {
         self.saving(false);
-        throw err;
+        throw request_error;
       });
     };
 
     /** セルクリックで状態を切り替える（画面遷移なしで即時反映） */
-    self.toggle = function (cell) {
+    self.toggle = function (shift_cell) {
       self.errors([]);
 
-      const current_status_index = STATUS_ORDER.indexOf(cell.status);
+      const current_status_index = STATUS_ORDER.indexOf(shift_cell.status);
       const next_status = STATUS_ORDER[(current_status_index + 1) % STATUS_ORDER.length];
 
       // 却下するときは理由を必ず記録する
       if (next_status === 'rejected') {
-        self.openReject([cell.id], 'このシフト希望を却下します。');
+        self.openReject([shift_cell.id], 'このシフト希望を却下します。');
         return;
       }
 
-      self.applyStatus([cell.id], next).catch(function (err) {
-        self.errors(api.messages(err, '状態の変更に失敗しました。'));
+      self.applyStatus([shift_cell.id], next).catch(function (request_error) {
+        self.errors(api.messages(request_error, '状態の変更に失敗しました。'));
       });
     };
 
@@ -338,18 +338,18 @@
     };
 
     /** 指定した日の希望中をまとめて確定する */
-    self.approveDay = function (index) {
-      const day_requested_ids = self.dayIdsOf(index, 'requested');
-      const target_day = self.summary()[index];
+    self.approveDay = function (day_index) {
+      const day_requested_ids = self.dayIdsOf(day_index, 'requested');
+      const target_day = self.summary()[day_index];
       if (!day_requested_ids.length) { return; }
       if (!confirm(target_day.label + ' の希望中 ' + day_requested_ids.length + ' 件をまとめて確定します。よろしいですか？')) { return; }
       self.approve(day_requested_ids);
     };
 
-    self.approve = function (ids) {
+    self.approve = function (request_ids) {
       self.errors([]);
-      self.applyStatus(ids, 'approved').catch(function (err) {
-        self.errors(api.messages(err, '一括確定に失敗しました。'));
+      self.applyStatus(request_ids, 'approved').catch(function (request_error) {
+        self.errors(api.messages(request_error, '一括確定に失敗しました。'));
       });
     };
 
@@ -362,26 +362,26 @@
     };
 
     /** 指定した日の確定を取り消して希望中に戻す */
-    self.undoDay = function (index) {
-      const day_approved_ids = self.dayIdsOf(index, 'approved');
-      const target_day = self.summary()[index];
+    self.undoDay = function (day_index) {
+      const day_approved_ids = self.dayIdsOf(day_index, 'approved');
+      const target_day = self.summary()[day_index];
       if (!day_approved_ids.length) { return; }
       if (!confirm(target_day.label + ' の確定 ' + day_approved_ids.length + ' 件を取り消して、希望中に戻します。よろしいですか？')) { return; }
       self.undo(day_approved_ids);
     };
 
-    self.undo = function (ids) {
+    self.undo = function (request_ids) {
       self.errors([]);
-      self.applyStatus(ids, 'requested').catch(function (err) {
-        self.errors(api.messages(err, '確定の取り消しに失敗しました。'));
+      self.applyStatus(request_ids, 'requested').catch(function (request_error) {
+        self.errors(api.messages(request_error, '確定の取り消しに失敗しました。'));
       });
     };
 
-    self.openReject = function (ids, label) {
-      self.rejectIds = ids;
+    self.openReject = function (request_ids, target_label) {
+      self.rejectIds = request_ids;
       self.rejectReason('');
       self.rejectErrors([]);
-      self.rejectTargetLabel(label);
+      self.rejectTargetLabel(target_label);
       self.showReject(true);
     };
 
@@ -397,8 +397,8 @@
       self.rejectErrors([]);
       self.applyStatus(self.rejectIds, 'rejected', reject_reason).then(function () {
         self.showReject(false);
-      }).catch(function (err) {
-        self.rejectErrors(api.messages(err, '却下に失敗しました。'));
+      }).catch(function (request_error) {
+        self.rejectErrors(api.messages(request_error, '却下に失敗しました。'));
       });
     };
 
