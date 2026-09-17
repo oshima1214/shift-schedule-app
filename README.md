@@ -103,7 +103,7 @@
 FuelPHPのエラーログは `fuel/app/logs/年/月/日.php` に出る。リアルタイムで見るには次を実行する。
 
 ```
-docker exec -it fuelphp-app tail -f /var/www/html/my_fuel_project/fuel/app/logs/2026/09/09.php
+docker exec -it fuelphp-app tail -f /var/www/html/my_fuel_project/fuel/app/logs/$(date +%Y/%m/%d).php
 ```
 
 `docker-compose down` するとDBコンテナのデータも消えるため、次回起動時はマイグレーションを再実行する。
@@ -132,7 +132,7 @@ docker exec -it fuelphp-app tail -f /var/www/html/my_fuel_project/fuel/app/logs/
 | F14 | パスワード変更（本人） | S06 |
 | F15 | 日別人員サマリ | S04 |
 | F16 | 却下理由の記録・表示 | S04 / S03 / S02 |
-| F17 | シフト割り当ての一括確定 | S04 |
+| F17 | シフト割り当ての一括確定と取り消し | S04 |
 | F18 | ログイン試行回数の制限 | S01 |
 
 ### 日別人員サマリ（S04）
