@@ -280,9 +280,22 @@ return array(
 
     'uri_filter'                    => array('htmlentities'),
 
-    // 入力値の前後の空白を落とす。$_GET / $_POST / $_COOKIE に適用される
-    // （Input::json() が読むリクエストボディには適用されない）。
-    'input_filter'                  => array('trim'),
+    /**
+     * 入力フィルタは意図的に空にしている。
+     *
+     * ここに trim を入れると Security::clean_input() が $_GET / $_POST /
+     * $_COOKIE と Input::json() のリクエストボディすべてに適用され、
+     * パスワードの前後の空白まで落ちてしまう。その結果
+     * 「Admin#12345   」のような誤った入力でログインできてしまうため入れない。
+     *
+     * 前後の空白を落としたい項目（メールアドレス・氏名・却下理由）は、
+     * 各コントローラで個別に trim() している。
+     *
+     * XSS対策は入力時ではなく出力時に行う方針で、auto_filter_output と
+     * Security::htmlentities で担保している（下の output_filter を参照）。
+     * 入力時にエスケープすると保存する値そのものが変わってしまう。
+     */
+    'input_filter'                  => array(),
 
     /**
      * ---------------------------------------------------------------------
