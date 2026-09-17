@@ -11,19 +11,19 @@ namespace Fuel\Migrations;
  */
 class Set_admin_employment_type
 {
-	public function up()
-	{
-		\DB::update('employees')
-			->set(array('employment_type' => 'full_time'))
-			->where('email', 'admin@example.com')
-			->execute();
-	}
+  public function up()
+  {
+    \DB::update('employees')
+      ->set(array('employment_type' => 'full_time'))
+      ->where('email', 'admin@example.com')
+      ->execute();
+  }
 
-	public function down()
-	{
-		\DB::update('employees')
-			->set(array('employment_type' => 'part_time'))
-			->where('email', 'admin@example.com')
-			->execute();
-	}
+  public function down()
+  {
+    \DB::update('employees')
+      ->set(array('employment_type' => 'part_time'))
+      ->where('email', 'admin@example.com')
+      ->execute();
+  }
 }
