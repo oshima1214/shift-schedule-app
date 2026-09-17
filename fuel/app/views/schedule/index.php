@@ -324,7 +324,7 @@
         return;
       }
 
-      self.applyStatus([shift_cell.id], next).catch(function (request_error) {
+      self.applyStatus([shift_cell.id], next_status).catch(function (request_error) {
         self.errors(api.messages(request_error, '状態の変更に失敗しました。'));
       });
     };
