@@ -156,16 +156,16 @@
 </div>
 
 <script>
-  // 雇用形態ごとのバッジの色
   // 新規登録時に最初から選んでおく部署。DOMの並び順に依存しないようサーバから受け取る。
   const DEFAULT_DEPARTMENT_ID = <?php echo json_encode($default_department_id); ?>;
 
+  // 雇用形態ごとのバッジの色
   const TYPE_TAG = { full_time: 'sage', part_time: 'blue', part: 'pur' };
 
   function ViewModel() {
     const self = this;
 
-    self.typeTag = function (type) { return TYPE_TAG[type] || 'blue'; };
+    self.typeTag = function (employment_type_code) { return TYPE_TAG[employment_type_code] || 'blue'; };
 
     self.rows = ko.observableArray([]);
     self.page = ko.observable(1);
@@ -190,22 +190,22 @@
       password: ko.observable('')
     };
 
-    self.load = function (page) {
+    self.load = function (page_number) {
       self.loading(true);
       self.errors([]);
       api.get('<?php echo Uri::create('employee/list'); ?>', {
-        page: page,
+        page: page_number,
         department_id: self.departmentId(),
         employment_type: self.employmentType()
-      }).then(function (body) {
-        self.rows(body.rows);
-        self.page(body.page);
-        self.totalPages(body.total_pages);
-        self.total(body.total);
+      }).then(function (response_body) {
+        self.rows(response_body.rows);
+        self.page(response_body.page);
+        self.totalPages(response_body.total_pages);
+        self.total(response_body.total);
         self.loading(false);
-      }).catch(function (err) {
+      }).catch(function (request_error) {
         self.loading(false);
-        self.errors(api.messages(err, '一覧の取得に失敗しました。'));
+        self.errors(api.messages(request_error, '一覧の取得に失敗しました。'));
       });
     };
 
@@ -231,14 +231,14 @@
       self.showForm(true);
     };
 
-    self.openEdit = function (row) {
-      self.editingId(row.id);
+    self.openEdit = function (employee_row) {
+      self.editingId(employee_row.id);
       self.formErrors([]);
-      self.form.name(row.name);
-      self.form.email(row.email);
-      self.form.department_id(String(row.department_id));
-      self.form.employment_type(row.employment_type);
-      self.form.role(row.role);
+      self.form.name(employee_row.name);
+      self.form.email(employee_row.email);
+      self.form.department_id(String(employee_row.department_id));
+      self.form.employment_type(employee_row.employment_type);
+      self.form.role(employee_row.role);
       self.form.password('');
       self.showForm(true);
     };
@@ -268,19 +268,19 @@
         self.saving(false);
         self.showForm(false);
         self.load(self.page());
-      }).catch(function (err) {
+      }).catch(function (request_error) {
         self.saving(false);
-        self.formErrors(api.messages(err, '保存に失敗しました。'));
+        self.formErrors(api.messages(request_error, '保存に失敗しました。'));
       });
     };
 
-    self.remove = function (row) {
-      if (!confirm(row.name + ' さんを削除しますか？（過去のシフト履歴は残ります）')) { return; }
+    self.remove = function (employee_row) {
+      if (!confirm(employee_row.name + ' さんを削除しますか？（過去のシフト履歴は残ります）')) { return; }
       self.errors([]);
-      api.post('<?php echo Uri::create('employee/delete'); ?>/' + row.id).then(function () {
+      api.post('<?php echo Uri::create('employee/delete'); ?>/' + employee_row.id).then(function () {
         self.load(self.page());
-      }).catch(function (err) {
-        self.errors(api.messages(err, '削除に失敗しました。'));
+      }).catch(function (request_error) {
+        self.errors(api.messages(request_error, '削除に失敗しました。'));
       });
     };
 

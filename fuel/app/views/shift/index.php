@@ -176,8 +176,8 @@
     self.selectableDays = ko.computed(function () {
       const editing_request_id = self.editingId();
 
-      return self.rows().filter(function (row) {
-        return ! row.id || row.id === editing_request_id;
+      return self.rows().filter(function (shift_row) {
+        return ! shift_row.id || shift_row.id === editing_request_id;
       });
     });
 
@@ -188,40 +188,40 @@
     };
 
     /** 指定週を読み込む（画面遷移なし） */
-    self.load = function (week) {
+    self.load = function (week_start_date) {
       self.loading(true);
       self.errors([]);
-      api.get('<?php echo Uri::create('shift/list'); ?>', { week: week }).then(function (body) {
-        self.rows(body.rows);
-        self.week(body.week);
-        self.weekLabel(body.label);
-        self.prev(body.prev_week);
-        self.next(body.next_week);
+      api.get('<?php echo Uri::create('shift/list'); ?>', { week: week_start_date }).then(function (response_body) {
+        self.rows(response_body.rows);
+        self.week(response_body.week);
+        self.weekLabel(response_body.label);
+        self.prev(response_body.prev_week);
+        self.next(response_body.next_week);
         self.loading(false);
         self.cancelEdit();
-      }).catch(function (err) {
+      }).catch(function (request_error) {
         self.loading(false);
-        self.errors(api.messages(err, '一覧の取得に失敗しました。'));
+        self.errors(api.messages(request_error, '一覧の取得に失敗しました。'));
       });
     };
 
     self.prevWeek = function () { self.load(self.prev()); };
     self.nextWeek = function () { self.load(self.next()); };
 
-    self.startCreate = function (row) {
+    self.startCreate = function (shift_row) {
       self.editingId(null);
       self.errors([]);
-      self.form.work_date(row.date);
+      self.form.work_date(shift_row.date);
       self.form.start_time('09:00');
       self.form.end_time('13:00');
     };
 
-    self.startEdit = function (row) {
-      self.editingId(row.id);
+    self.startEdit = function (shift_row) {
+      self.editingId(shift_row.id);
       self.errors([]);
-      self.form.work_date(row.date);
-      self.form.start_time(row.start_time);
-      self.form.end_time(row.end_time);
+      self.form.work_date(shift_row.date);
+      self.form.start_time(shift_row.start_time);
+      self.form.end_time(shift_row.end_time);
     };
 
     self.cancelEdit = function () {
@@ -230,13 +230,13 @@
       self.resetFormDate();
     };
 
-    self.removeRow = function (row) {
+    self.removeRow = function (shift_row) {
       if (!confirm('この日のシフト希望を削除しますか？')) { return; }
       self.errors([]);
-      api.post('<?php echo Uri::create('shift/delete'); ?>/' + row.id).then(function () {
+      api.post('<?php echo Uri::create('shift/delete'); ?>/' + shift_row.id).then(function () {
         self.load(self.week());
-      }).catch(function (err) {
-        self.errors(api.messages(err, '削除に失敗しました。'));
+      }).catch(function (request_error) {
+        self.errors(api.messages(request_error, '削除に失敗しました。'));
       });
     };
 
@@ -256,9 +256,9 @@
       api.post(endpoint_url, request_payload).then(function () {
         self.saving(false);
         self.load(self.week());
-      }).catch(function (err) {
+      }).catch(function (request_error) {
         self.saving(false);
-        self.errors(api.messages(err, '保存に失敗しました。'));
+        self.errors(api.messages(request_error, '保存に失敗しました。'));
       });
     };
 
