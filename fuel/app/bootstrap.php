@@ -15,16 +15,16 @@ require COREPATH.'bootstrap.php';
 
 // Add framework overload classes here
 \Autoloader::add_classes(array(
-	// Example: 'View' => APPPATH.'classes/myview.php',
+  // Example: 'View' => APPPATH.'classes/myview.php',
 ));
 
 // アプリ固有クラス（namespace付き）のマッピング
 \Autoloader::add_classes(array(
-	'App\\Model\\Department'   => APPPATH.'classes/model/department.php',
-	'App\\Model\\Employee'     => APPPATH.'classes/model/employee.php',
-	'App\\Model\\ShiftRequest' => APPPATH.'classes/model/shiftrequest.php',
-	'App\\Support\\Week'       => APPPATH.'classes/support/week.php',
-	'App\\Support\\Csrf'       => APPPATH.'classes/support/csrf.php',
+  'App\\Model\\Department'   => APPPATH.'classes/model/department.php',
+  'App\\Model\\Employee'     => APPPATH.'classes/model/employee.php',
+  'App\\Model\\ShiftRequest' => APPPATH.'classes/model/shiftrequest.php',
+  'App\\Support\\Week'       => APPPATH.'classes/support/week.php',
+  'App\\Support\\Csrf'       => APPPATH.'classes/support/csrf.php',
 ));
 
 // Register the autoloader
